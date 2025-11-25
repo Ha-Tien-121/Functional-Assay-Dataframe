@@ -27,27 +27,40 @@ def parse_hgvsp(hgvsp):
     # Pattern 1: 3-letter (e.g., Met779Arg)
     # Matches Ref(3)Pos(N)Alt(3)
     # Also handles Ter
-    match_3 = re.match(r'^([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2}|Ter|\*)$', clean)
+    match_3 = re.match(r'^([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2}|Ter|\*|=|del|Del)$', clean)
     if match_3:
         ref_3, pos, alt_3 = match_3.groups()
         ref = AA_3_TO_1.get(ref_3, '?')
-        if alt_3 == 'Ter':
+        if alt_3 in ['Ter', '*']:
             alt = '*'
-        elif alt_3 == '*':
-            alt = '*'
+        elif alt_3 in ['del', 'Del']:
+            alt = 'del'
+        elif alt_3 == '=':
+            # synonymous: same aa as ref
+            alt = ref
         else:
             alt = AA_3_TO_1.get(alt_3, '?')
         
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
 
     # Pattern 2: 1-letter (e.g., M779R)
-    match_1 = re.match(r'^([A-Z])(\d+)([A-Z]|\*)$', clean)
+    match_1 = re.match(r'^([A-Z])(\d+)([A-Z]|\*|=|del)$', clean)
     if match_1:
-        ref, pos, alt = match_1.groups()
+        ref, pos, alt_token = match_1.groups()
+        if alt_token == '*':
+            alt = '*'
+        elif alt_token == '=':
+            alt = ref          # synonymous
+        elif alt_token == 'del':
+            alt = 'del'
+        else:
+            alt = alt_token
+
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
     
     # Pattern 3: Synonymous/Other (e.g., Met779=, M779=) - ignoring for now or mapping?
     # If standard 3-letter but same ref/alt (Met779Met), the regex above might catch it if pattern matches.
     
     return None, None, None, None
+
 
