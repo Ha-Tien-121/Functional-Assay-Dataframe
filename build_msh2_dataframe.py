@@ -13,7 +13,7 @@ CRAVAT_FILE = INPUT_DIR / "cravat_msh2_cleaned.tsv.gz"
 PILLAR_FILE = INPUT_DIR / "MSH2/MSH2_pillar_data.csv.gz"
 JIA_FILE = INPUT_DIR / "MSH2/Jia MSH2 2021.xlsx"
 OLLODART_FILE = INPUT_DIR / "MSH2/Ollodart2020.xlsx"
-BOUVET_FILE = INPUT_DIR / "MSH2/MSH2_Bouvet.csv"
+BOUVET_FILE = INPUT_DIR / "MSH2/MSH2_Bouvet_new.csv"
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
 
 # Target columns
