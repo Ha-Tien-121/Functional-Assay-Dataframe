@@ -6,18 +6,19 @@ from variant_helpers import parse_hgvsp
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
-OUTPUT_FILE = INPUT_DIR / "MSH2_master_dataframe.csv"
+OUTPUT_FILE = INPUT_DIR / "MSH2_master_dataframe_updated.csv"
 
 # File paths
 CRAVAT_FILE = INPUT_DIR / "cravat_msh2_cleaned.tsv"
-JIA_FILE = INPUT_DIR / "Jia MSH2 2021.xlsx"
-OLLODART_FILE = INPUT_DIR / "Ollodart2020.xlsx"
-BOUVET_FILE = INPUT_DIR / "MSH2_Bouvet.csv"
+PILLAR_FILE = INPUT_DIR / "MSH2/MSH2_pillar_data.csv.gz"
+JIA_FILE = INPUT_DIR / "MSH2/Jia MSH2 2021.xlsx"
+OLLODART_FILE = INPUT_DIR / "MSH2/Ollodart2020.xlsx"
+BOUVET_FILE = INPUT_DIR / "MSH2/MSH2_Bouvet.csv"
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
 
 # Target columns
 TARGET_COLUMNS = [
-    "Gene", "HGNC ID", "Transcript", "HGVSc.", "HGVSp.", "Chrom", 
+    "Gene", "HGNC ID", "Ensembl_transcript_ID", "Ref_seq_transcript_ID", "HGVSc.", "HGVSp.", "Chrom", 
     "hg38_start", "hg38_end", "ref_allele", "alt_allele", 
     "aa_pos", "aa_ref", "aa_alt", 
     "MSH2 Jia auth_func_score", "Jia_auth_reported_functional_class", 
@@ -68,45 +69,24 @@ def load_cravat(filepath):
     """
     Loads and cleans CRAVAT output.
     Returns DataFrame with normalized columns and 'join_key' (HGVSp short).
+    Now includes ALL columns from Cravat file.
     """
     print(f"Loading CRAVAT file from {filepath}...")
     
-    # Columns to keep (mapping)
-    usecols = [
-        'Variant_Annotation_Gene', 
-        'Variant_Annotation_Transcript',
-        'Variant_Annotation_cDNA_change', 
-        'Variant_Annotation_Protein_Change',
-        'Variant_Annotation_Chrom', 
-        'Variant_Annotation_Position',
-        'Variant_Annotation_End_Position', 
-        'Variant_Annotation_Ref_Base', 
-        'Variant_Annotation_Alt_Base',
-        'gnomAD_Global_AF',
-        'ClinVar_Clinical_Significance', 
-        'ClinVar_Review_Status',
-        'SpliceAI_Acceptor_Gain_Score', 
-        'SpliceAI_Acceptor_Loss_Score', 
-        'SpliceAI_Donor_Gain_Score', 
-        'SpliceAI_Donor_Loss_Score'
-    ]
-    
-    # Check actual columns in file to avoid errors
-    df_iter = pd.read_csv(filepath, sep='\t', chunksize=1)
-    actual_cols = list(next(df_iter).columns)
-    valid_cols = [c for c in usecols if c in actual_cols]
-    
-    # Read full file (memory permitting, 58k rows is fine)
-    df = pd.read_csv(filepath, sep='\t', usecols=valid_cols, low_memory=False)
+    # Load FULL file
+    df = pd.read_csv(filepath, sep='\t', low_memory=False)
     
     # Filter for MSH2 gene if needed (though file name implies MSH2)
     if 'Variant_Annotation_Gene' in df.columns:
         df = df[df['Variant_Annotation_Gene'] == 'MSH2'].copy()
         
-    # Rename columns
+    # Rename key columns for consistent merging/schema
+    # Note: We are keeping all other columns as-is or prefixed if collision occurs.
+    # The 'rename_map' handles the critical columns we use in TARGET_COLUMNS.
     rename_map = {
         'Variant_Annotation_Gene': 'Gene',
-        'Variant_Annotation_Transcript': 'Transcript_Cravat',
+        'Variant_Annotation_Transcript': 'Ensembl_transcript_ID', # Mapped from Cravat Transcript
+        'Extra_VCF_INFO_Annotations_TRANSCRIPT': 'Ref_seq_transcript_ID', # Mapped from Cravat Extra VCF Transcript
         'Variant_Annotation_cDNA_change': 'HGVSc.',
         'Variant_Annotation_Protein_Change': 'HGVSp.',
         'Variant_Annotation_Chrom': 'Chrom',
@@ -148,10 +128,7 @@ def load_cravat(filepath):
     df['aa_alt'] = parsed.apply(lambda x: x[2])
     df['join_key'] = parsed.apply(lambda x: x[3])
     
-    # Create a backup join_key from HGVSc if HGVSp is missing (optional, but functional sets are usually protein)
-    
     # Handle duplicates in Cravat: 
-    # Do NOT drop duplicates on join_key (Protein change) because we want to keep distinct genomic variants (HGVSc).
     # Only drop if strict duplicate rows exist (which read_csv might handle, but we can check).
     if df.duplicated().any():
        df = df.drop_duplicates()
@@ -186,7 +163,7 @@ def load_jia(filepath):
         return df[cols]
     except Exception as e:
         print(f"Error loading Jia: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['join_key', 'MSH2 Jia auth_func_score', 'Jia_auth_reported_functional_class'])
 
 def load_ollodart(filepath):
     print(f"Loading Ollodart data from {filepath}...")
@@ -215,7 +192,7 @@ def load_ollodart(filepath):
         return df[cols]
     except Exception as e:
         print(f"Error loading Ollodart: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['join_key', 'MSH2_Ollodart_auth_func_score', 'Ollodart_auth_reported_functional_class'])
 
 def load_bouvet(filepath):
     print(f"Loading Bouvet data from {filepath}...")
@@ -254,7 +231,70 @@ def load_bouvet(filepath):
         return df[cols]
     except Exception as e:
         print(f"Error loading Bouvet: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=['join_key', 'MSH2_Bouvet_auth_func_score', 'Bouvet_auth_reported_functional_class'])
+
+def load_pillar(filepath):
+    """
+    Loads MSH2 pillar data to get ClinVar 2025 date/stars.
+    Returns DataFrame with 'join_key', 'clinvar_date_last_reviewed_2025', 'clinvar_star_2025'.
+    (Transcripts now come from Cravat map)
+    """
+    print(f"Loading Pillar file from {filepath}...")
+    try:
+        # Load only necessary columns
+        usecols = [
+            'hgvs_p', 'aa_pos', 'aa_ref', 'aa_alt',
+            'clinvar_star_2025', 'clinvar_date_last_reviewed_2025'
+        ]
+        df = pd.read_csv(filepath, usecols=lambda x: x in usecols, low_memory=False)
+        
+        # Map ClinVar stars in Pillar data
+        def map_stars_pillar(status):
+            if pd.isna(status): return np.nan
+            status = str(status).lower()
+            if 'practice guideline' in status: return 4
+            if 'expert panel' in status: return 3
+            if 'multiple submitters' in status and 'conflicts' not in status: return 2
+            if 'single submitter' in status or 'conflicting' in status: return 1
+            if 'no assertion' in status: return 0
+            return 0 # Default/Uncertain
+
+        if 'clinvar_star_2025' in df.columns:
+            df['clinvar_star_2025'] = df['clinvar_star_2025'].apply(map_stars_pillar)
+
+        # Method 1: Use aa columns if available to construct join_key
+        if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
+             df['join_key'] = df.apply(
+                 lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
+                 if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
+                 axis=1
+             )
+        
+        # Method 2: Fallback to HGVSp
+        mask = df.get('join_key', pd.Series([np.nan]*len(df))).isna()
+        if mask.any() and 'hgvs_p' in df.columns:
+            parsed = df.loc[mask, 'hgvs_p'].apply(parse_hgvsp)
+            df.loc[mask, 'join_key'] = parsed.apply(lambda x: x[3])
+            
+        # Select final columns to merge
+        out_cols = [
+            'join_key', 
+            'clinvar_star_2025', 
+            'clinvar_date_last_reviewed_2025'
+        ]
+        
+        df = df[out_cols].dropna(subset=['join_key'])
+        
+        if df.duplicated(subset=['join_key']).any():
+            # If multiple entries, prefer one with date?
+            # Sort by date descending (NaNs last) to pick most reviewed/recent
+            df = df.sort_values('clinvar_date_last_reviewed_2025', ascending=False)
+            df = df.drop_duplicates(subset=['join_key'])
+            
+        return df
+    except Exception as e:
+        print(f"Error loading Pillar: {e}")
+        return pd.DataFrame(columns=['join_key', 'clinvar_star_2025', 'clinvar_date_last_reviewed_2025'])
 
 def main():
     print("Starting pipeline...")
@@ -262,10 +302,14 @@ def main():
     # 1. Load MAVE Metadata (Intervals)
     mave_meta = load_mave_metadata(MAVE_FILE)
     
-    # 2. Load Cravat (Backbone)
+    # 2. Load Cravat (Backbone) - NOW INCLUDING ALL COLUMNS
     cravat_df = load_cravat(CRAVAT_FILE)
     print(f"Cravat variants loaded: {len(cravat_df)}")
     
+    # 2b. Load Pillar for ClinVar and Transcript updates
+    pillar_df = load_pillar(PILLAR_FILE)
+    print(f"Pillar variants loaded: {len(pillar_df)}")
+
     # 3. Load Functional Datasets
     jia_df = load_jia(JIA_FILE)
     ollodart_df = load_ollodart(OLLODART_FILE)
@@ -284,15 +328,35 @@ def main():
     merged = merged.merge(ollodart_df, on='join_key', how='left')
     merged = merged.merge(bouvet_df, on='join_key', how='left')
     
+    # Merge Pillar data for ClinVar fields
+    # We want to overwrite or fill the clinvar columns from Cravat with Pillar data
+    merged = merged.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+    
+    # Update/Override ClinVar columns
+    if 'clinvar_star_2025_pillar' in merged.columns:
+        # Use Pillar star if available, else keep existing
+        merged['clinvar_star_2025'] = merged['clinvar_star_2025_pillar'].fillna(merged['clinvar_star_2025'])
+    
+    if 'clinvar_date_last_reviewed_2025_pillar' in merged.columns:
+        merged['clinvar_date_last_reviewed_2025'] = merged['clinvar_date_last_reviewed_2025_pillar']
+        
+    # Transcripts are now mapped in Cravat load step, so no need to map from Pillar here.
+    
     # 5. Fill Metadata Columns
     # HGNC ID, Transcript from MAVE if available, else from Cravat
     merged['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:7325') # MSH2 HGNC ID
-    if 'Transcript_Cravat' in merged.columns:
-        # Use Cravat transcript for now, but if MAVE specifies one, we might want to ensure we're using that one or just label it.
-        # The target schema just says 'Transcript'. 
-        merged['Transcript'] = merged['Transcript_Cravat']
+    
+    # Fallback for Transcript IDs if missing in Cravat?
+    # Mave metadata might have them
+    if 'Ensembl_transcript_ID' not in merged.columns:
+        merged['Ensembl_transcript_ID'] = mave_meta.get('Ensembl_transcript_ID', np.nan)
     else:
-        merged['Transcript'] = mave_meta.get('Transcript', np.nan)
+        merged['Ensembl_transcript_ID'] = merged['Ensembl_transcript_ID'].fillna(mave_meta.get('Ensembl_transcript_ID', np.nan))
+        
+    if 'Ref_seq_transcript_ID' not in merged.columns:
+        merged['Ref_seq_transcript_ID'] = mave_meta.get('Ref_seq_transcript_ID', np.nan)
+    else:
+        merged['Ref_seq_transcript_ID'] = merged['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
 
     # Fill Interval columns (constant values from MAVE metadata)
     for i in range(1, 4):
@@ -300,16 +364,21 @@ def main():
         merged[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
         merged[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
         
-    # clinvar_date_last_reviewed_2025 -> NaN for now (not in Cravat header)
-    merged['clinvar_date_last_reviewed_2025'] = np.nan
-    
     # 6. Final Column Selection & Ordering
-    # Create missing columns with NaNs
+    # We want ALL columns from Cravat + our Target Columns.
+    # First, ensure TARGET_COLUMNS exist
     for col in TARGET_COLUMNS:
         if col not in merged.columns:
             merged[col] = np.nan
             
-    final_df = merged[TARGET_COLUMNS]
+    # Construct final column list:
+    # 1. TARGET_COLUMNS (in specific order)
+    # 2. All other columns from merged that are NOT in TARGET_COLUMNS (Cravat extra cols)
+    
+    other_cols = [c for c in merged.columns if c not in TARGET_COLUMNS and not c.endswith('_pillar')]
+    final_cols = TARGET_COLUMNS + other_cols
+    
+    final_df = merged[final_cols]
     
     # 7. Write Output
     print(f"Writing {len(final_df)} rows to {OUTPUT_FILE}...")
@@ -322,4 +391,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
