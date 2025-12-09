@@ -9,7 +9,7 @@ INPUT_DIR = pathlib.Path(".")
 OUTPUT_FILE = INPUT_DIR / "MSH2_master_dataframe_updated.csv"
 
 # File paths
-CRAVAT_FILE = INPUT_DIR / "cravat_msh2_cleaned.tsv"
+CRAVAT_FILE = INPUT_DIR / "cravat_msh2_cleaned.tsv.gz"
 PILLAR_FILE = INPUT_DIR / "MSH2/MSH2_pillar_data.csv.gz"
 JIA_FILE = INPUT_DIR / "MSH2/Jia MSH2 2021.xlsx"
 OLLODART_FILE = INPUT_DIR / "MSH2/Ollodart2020.xlsx"
