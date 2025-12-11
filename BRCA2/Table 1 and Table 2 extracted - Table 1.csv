@@ -1,0 +1,39 @@
+Validation set,,,,,
+Class 1/2 BRCA2 missense variants,,,,,
+Exon,Nucleotide,Amino acid,Complementation,HDR capacity (%),Cisplatin sensitivity (%)
+2,c.53G>A,p.Arg18His,Yes,95,68
+3,c.125A>G,p.Tyr42Cys,Yes,72,59
+6,c.502C>A,p.Pro168Thr,Yes,115,108
+10,c.1114A>C,p.Asn372His,Yes,79,150
+12,c.6853A>G,p.Ile2285Val,Yes,60,122
+14,c.7057G>C,p.Gly2353Arg,Yes,82,108
+15,c.7544C>T,p.Thr2515Ile,Yes,78,70
+16,c.7766C>A,p.Pro2589His,Yes,52,127
+18,c.8149G>T,p.Ala2717Ser,Yes,85,57
+18,c.8187G>T,p.Lys2729Asn,Yes,70,53
+19,c.8360G>A,p.Arg2787His,Yes,94,114
+20,c.8567A>C,p.Glu2856Ala,Yes,82,63
+21,c.8662C>T,p.Arg2888Cys,Yes,52,92
+22,c.8851G>A,p.Ala2951Thr,Yes,72,80
+22,c.8917C>T,p.Arg2973Cys,Yes,69,51
+24,c.9155G>A,p.Arg3052Gln,Yes,50,105
+24,c.9235G>A,p.Val3079Ile,Yes,97,48
+25,c.9292T>C,p.Tyr3098His,Yes,86,54
+26,c.9509A>G,p.Asp3170Gly,Yes,71,105
+27,c.10045A>G,p.Thr3349Ala,Yes,102,65
+Class 4/5 BRCA2 missense variants,,,,,
+2,c.3G>A,p.Met1Ile,No,NA,NA
+17,c.7826G>A,p.Gly2609Asp,Yes,28,35
+17,c.7878G>C,p.Trp2626Cys,No,NA,NA
+17,c.7879A>T,p.Ile2627Phe,No,NA,NA
+17,c.7940T>C,p.Leu2647Pro,No,NA,NA
+17,c.7958T>C,p.Leu2653Pro,No,NA,NA
+18,c.8057T>C,p.Leu2686Pro,No,NA,NA
+18,c.8063T>C,p.Leu2688Pro,No,NA,NA
+18,c.8165C>G,p.Thr2722Arg,No,NA,NA
+18,c.8167G>C,p.Asp2723His,No,NA,NA
+18,c.8168A>G,p.Asp2723Gly,No,NA,NA
+18,c.8243G>A,p.Gly2748Asp,No,NA,NA
+24,c.9154C>T,p.Arg3052Trp,No,NA,NA
+25,c.9285C>G,p.Asp3095Glu,No,NA,NA
+25,c.9371A>T,p.Asn3124Ile,No,NA,NA

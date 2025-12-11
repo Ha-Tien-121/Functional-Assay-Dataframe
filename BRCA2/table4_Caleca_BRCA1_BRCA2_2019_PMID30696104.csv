@@ -1,0 +1,23 @@
+Variants Group,DNA Change,Protein Change,Domain,Motif,Align-GVGD,IARC Class,BRCA2/DSS1 Binding,HDR,Centrosome Amplification,mESCs-Based Cell-Viability,mESCs-Based HDR
+Validation panel,c.7469T>C,p.Ile2490Thr,DBD,HD,C0,1,+,ND,ND,+,ND
+Validation panel,c.7544C>T,p.Thr2515Ile,DBD,HD,C0,1,+,+/-,+/-,+,+
+Validation panel,c.7826G>A,p.Gly2609Asp,DBD,HD,C65,4,-,-,ND,+,-
+Validation panel,c.7878G>C,p.Trp2626Cys,DBD,HD,C65,5,-,-,ND,-,ND
+Validation panel,c.7879A>T,p.Ile2627Phe,DBD,HD,C15,5,-,-,-,-,ND
+Validation panel,c.7940T>C,p.Leu2647Pro,DBD,HD,C65,4,-,-,-,ND,ND
+Validation panel,c.7958T>C,p.Leu2653Pro,DBD,HD,C65,5,-,-,-,ND,ND
+Validation panel,c.8063T>C,p.Leu2688Pro,DBD,OB1,C65,4,-,-,ND,-,ND
+Validation panel,c.8149G>T,p.Ala2717Ser,DBD,OB1,C0,1,+,ND,ND,+,+
+Validation panel,c.8165C>G,p.Thr2722Arg,DBD,OB1,C65,5,-,-,-,-,ND
+Validation panel,c.8167G>C,p.Asp2723His,DBD,OB1,C65,5,-,-,-,-,ND
+Validation panel,c.8168A>G,p.Asp2723Gly,DBD,OB1,C65,5,-,-,-,-,ND
+Validation panel,c.8187G>T,p.Lys2729Asn,DBD,OB1,C0,1,+,+,+,+,+
+Validation panel,c.8243G>A,p.Gly2748Asp,DBD,OB1,C65,5,-,-,-,-,ND
+Validation panel,c.8324T>G,p.Met2775Arg,DBD,OB1,C0,2,+,ND,ND,ND,ND
+VUS,c.7505G>A,p.Arg2502His,DBD,HD,C0,NA,+,ND,ND,ND,ND
+VUS,c.7628A>G,p.Tyr2543Cys,DBD,HD,C15,NA,+,ND,ND,ND,ND
+VUS,c.7636T>C,p.Ser2546Pro,DBD,HD,C0,NA,+,ND,ND,ND,ND
+VUS,c.7649T>C,p.Ile2550Thr,DBD,HD,C25,NA,+,ND,ND,ND,ND
+VUS,c.7684T>C,p.Phe2562Leu,DBD,HD,C15,NA,-,-,ND,ND,ND
+VUS,c.7698T>G,p.Asp2566Glu,DBD,HD,C0,NA,+,ND,ND,ND,ND
+VUS,c.7930A>G,p.Asn2644Asp,DBD,HD,C0,NA,+,ND,ND,ND,ND

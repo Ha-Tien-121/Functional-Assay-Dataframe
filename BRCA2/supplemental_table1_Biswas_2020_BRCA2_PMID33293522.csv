@@ -1,0 +1,89 @@
+Variant,HGVS_cDNA,HGVS_Protein,Domain,Position,Variant_Type,VUS_Status,Near_Splice_Site,AlignGVGD_Class,PIF_HAT,PIF_DS,PIF_HAT_DS,Functional_Class,Notes,Study_Batch
+K16R,c.47A>G,p.Lys16Arg,PALB2_binding,16,Missense,,,C15,0.2624,0.0584,0.0258,Functional,,Main_study
+P168T,c.502C>A,p.Pro168Thr,HD,168,Missense,Known_benign,No,C0,0.0026,0.2426,0,Functional,Known benign control,Main_study
+K169R,c.506A>G,p.Lys169Arg,HD,169,Missense,VUS,No,C35,0.0148,0.4618,0.0038,Functional,,Main_study
+V220Ifs,c.658_659delGT,p.Val220Ilefs*4,HD,220,Frameshift,Known_pathogenic,No,,1,1,1,Nonfunctional,Negative control,Main_study
+F266L,c.798C>G,p.Phe266Leu,HD,266,Missense,VUS,No,C25,0.0864,0.2936,0.0438,Functional,,Main_study
+N277K,c.831C>G,p.Asn277Lys,HD,277,Missense,VUS,No,C15,0.0018,0.0854,0,Functional,,Main_study
+L452V,c.1354C>G,p.Leu452Val,Outside_domains,452,Missense,VUS,No,C0,0.0024,0.0594,0,Functional,,Main_study
+T598A,c.1792A>G,p.Thr598Ala,Outside_domains,598,Missense,VUS,No,C0,0.0008,0.0342,0,Functional,,Main_study
+T598I,c.1793C>T,p.Thr598Ile,Outside_domains,598,Missense,VUS,No,C0,0.0036,0.1472,0,Functional,,Main_study
+G637=,c.1911G>A,p.Gly637=,Outside_domains,637,Silent,VUS,No,,0.1164,0.0312,0.0002,Functional,Synonymous,Main_study
+Q742X,c.2224C>T,p.Gln742*,Outside_domains,742,Nonsense,Known_pathogenic,No,,1,NA,1,Nonfunctional,Known pathogenic,Main_study
+S869L,c.2606C>T,p.Ser869Leu,Outside_domains,869,Missense,VUS,No,C25,0.0078,0.0330,0,Functional,,Main_study
+N986S,c.2957A>G,p.Asn986Ser,Outside_domains,986,Missense,VUS,No,C0,0.0074,0.0460,0,Functional,,Main_study
+N986I,c.2957A>T,p.Asn986Ile,Outside_domains,986,Missense,VUS,No,C15,0.0024,0.1616,0,Functional,,Main_study
+M1300I+1301Tdel,c.3900G>T+c.3902delC,p.Met1300Ile+p.Thr1301del,Outside_domains,1300-1301,Complex,VUS,No,,0.0076,0.0504,0,Functional,,Main_study
+T1302del,c.3904_3906del,p.Thr1302del,Outside_domains,1302,In-frame_deletion,VUS,No,,0.0076,0.6654,0.0132,Functional,,Main_study
+E1308X,c.3922G>T,p.Glu1308*,Outside_domains,1308,Nonsense,Known_pathogenic,No,,1,NA,1,Nonfunctional,Known pathogenic,Main_study
+S1479T,c.4436G>C,p.Ser1479Thr,Outside_domains,1479,Missense,VUS,No,C15,0.0010,0.0654,0,Functional,,Main_study
+F1524V,c.4570T>G,p.Phe1524Val,Outside_domains,1524,Missense,Known_benign,No,C0,0,0.0436,0,Functional,Known benign control,Main_study
+G1529R,c.4585G>A,p.Gly1529Arg,Outside_domains,1529,Missense,Known_benign,No,C25,0.0176,0.1146,0,Functional,Known benign control,Main_study
+T1624A,c.4870A>G,p.Thr1624Ala,Outside_domains,1624,Missense,VUS,No,C0,0.0110,0.9554,0.0518,Indeterminate,,Main_study
+V1643A,c.4928T>C,p.Val1643Ala,Outside_domains,1643,Missense,VUS,No,C0,0.0032,0.0710,0,Functional,,Main_study
+D1781N,c.5341G>A,p.Asp1781Asn,Outside_domains,1781,Missense,VUS,No,C25,0.1906,0.0478,0.0038,Functional,,Main_study
+D1781G,c.5342A>G,p.Asp1781Gly,Outside_domains,1781,Missense,VUS,No,C35,0.0090,0.1744,0,Functional,,Main_study
+N1880K,c.5640C>G,p.Asn1880Lys,Outside_domains,1880,Missense,VUS,No,C25,0.0086,0.0892,0.0052,Functional,,Main_study
+S1882X,c.5645C>A,p.Ser1882*,Outside_domains,1882,Nonsense,VUS,No,,1,NA,1,Nonfunctional,Nonsense,Main_study
+K1883N,c.5649G>C,p.Lys1883Asn,Outside_domains,1883,Missense,VUS,No,C15,0.0074,0.0458,0,Functional,,Main_study
+I1884T,c.5651T>C,p.Ile1884Thr,Outside_domains,1884,Missense,VUS,No,C0,0.0386,0.7680,0.1540,Indeterminate,,Main_study
+S1926Rfs,c.5777_5778delTG,p.Ser1926Argfs*12,Outside_domains,1926,Frameshift,VUS,No,,1,NA,1,Nonfunctional,Frameshift,Main_study
+H1996Y,c.5986C>T,p.His1996Tyr,Outside_domains,1996,Missense,VUS,No,C0,0.0024,0.0428,0,Functional,,Main_study
+L2106P,c.6317T>C,p.Leu2106Pro,Outside_domains,2106,Missense,VUS,No,C55,0.0084,0.1610,0,Functional,,Main_study
+S2152Y,c.6455C>A,p.Ser2152Tyr,Outside_domains,2152,Missense,VUS,No,C35,0.0636,0.2396,0.0272,Functional,,Main_study
+G2281V,c.6842G>T,p.Gly2281Val,Outside_domains,2281,Missense,VUS,Yes,C35,0.0150,0.0422,0.0008,Functional,Splice donor site of exon 12,Main_study
+D2312V,c.6935A>T,p.Asp2312Val,Outside_domains,2312,Missense,Known_benign,Yes,C0,0.0010,0.2830,0,Functional,Near splice acceptor site of exon 12,Main_study
+D2312E,c.6936C>A,p.Asp2312Glu,Outside_domains,2312,Missense,VUS,Yes,C0,0.0022,0.0374,0.0002,Functional,Near splice acceptor site of exon 12,Main_study
+R2336L,c.7007G>T,p.Arg2336Leu,DBD,2336,Missense,Conflicting,Yes,C55,0.1960,0.7516,0.3642,Indeterminate,Splice donor site of exon 13,Main_study
+R2336P,c.7007G>C,p.Arg2336Pro,DBD,2336,Missense,Conflicting,Yes,C65,0.9684,0.9770,0.9990,Nonfunctional,Splice donor site of exon 13,Main_study
+K2411T,c.7232A>C,p.Lys2411Thr,DBD,2411,Missense,Known_benign,No,C0,0.0058,0.1364,0.0002,Functional,Known benign control,Main_study
+S2483G,c.7448A>G,p.Ser2483Gly,DBD,2483,Missense,VUS,No,C0,0.0440,0.1100,0,Functional,,Main_study
+S2483N,c.7448G>A,p.Ser2483Asn,DBD,2483,Missense,VUS,No,C15,0.0038,0.1072,0,Functional,,Main_study
+R2488Rfs,c.7463_7466delTTGT,p.Arg2488Argfs*3,DBD,2488,Frameshift,VUS,No,,1,NA,1,Nonfunctional,Frameshift,Main_study
+R2488K,c.7463G>A,p.Arg2488Lys,DBD,2488,Missense,VUS,No,C25,0.0096,0.2200,0.0048,Functional,,Main_study
+R2488S,c.7464G>T,p.Arg2488Ser,DBD,2488,Missense,VUS,No,C35,0.0022,0.0590,0,Functional,,Main_study
+D2489G,c.7466A>G,p.Asp2489Gly,DBD,2489,Missense,VUS,No,C55,1,0.1672,1,Nonfunctional,,Main_study
+Q2561P,c.7682A>C,p.Gln2561Pro,DBD,2561,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+F2562L,c.7686T>A,p.Phe2562Leu,DBD,2562,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+G2585R,c.7753G>A,p.Gly2585Arg,DBD,2585,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+L2587F,c.7761G>T,p.Leu2587Phe,DBD,2587,Missense,VUS,No,C0,0.0020,0.0454,0,Functional,,Main_study
+G2596R,c.7786G>A,p.Gly2596Arg,DBD,2596,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+G2596E,c.7787G>A,p.Gly2596Glu,DBD,2596,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+D2611G,c.7832A>G,p.Asp2611Gly,DBD,2611,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+N2622S,c.7865A>G,p.Asn2622Ser,DBD,2622,Missense,VUS,No,C25,0.0192,0.3164,0.0020,Functional,,Main_study
+H2623R,c.7868A>G,p.His2623Arg,DBD,2623,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+K2630Q,c.7889A>C,p.Lys2630Gln,DBD,2630,Missense,VUS,No,C25,1,NA,1,Nonfunctional,,Main_study
+L2647P,c.7940T>C,p.Leu2647Pro,DBD,2647,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+R2659G,c.7975A>G,p.Arg2659Gly,DBD,2659,Missense,VUS,Yes,C55,1,NA,1,Nonfunctional,Near splice acceptor site of exon 17,Main_study
+R2659K,c.7976G>A,p.Arg2659Lys,DBD,2659,Missense,VUS,Yes,C45,1,NA,1,Nonfunctional,Near splice acceptor site of exon 17,Main_study
+R2659T,c.7976G>C,p.Arg2659Thr,DBD,2659,Missense,VUS,Yes,C45,1,NA,1,Nonfunctional,Near splice acceptor site of exon 17,Main_study
+S2670L,c.8009C>T,p.Ser2670Leu,DBD,2670,Missense,VUS,No,C45,1,NA,1,Nonfunctional,,Main_study
+T2681R,c.8042C>G,p.Thr2681Arg,DBD,2681,Missense,VUS,No,C0,0.0028,0.1666,0,Functional,,Main_study
+L2686P,c.8057T>C,p.Leu2686Pro,DBD,2686,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+L2688P,c.8063T>C,p.Leu2688Pro,DBD,2688,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+S2691F,c.8072C>T,p.Ser2691Phe,DBD,2691,Missense,VUS,No,C45,1,NA,1,Nonfunctional,,Main_study
+T2708Nfs,c.8122dupA,p.Thr2708Asnfs*25,DBD,2708,Frameshift,VUS,No,,1,0.9950,1,Nonfunctional,Frameshift,Main_study
+L2721H,c.8162T>A,p.Leu2721His,DBD,2721,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+D2723A,c.8168A>C,p.Asp2723Ala,DBD,2723,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+D2723V,c.8168A>T,p.Asp2723Val,DBD,2723,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+Y2726C,c.8177A>G,p.Tyr2726Cys,DBD,2726,Missense,VUS,No,C65,1,NA,1,Nonfunctional,,Main_study
+V2728I,c.8182G>A,p.Val2728Ile,DBD,2728,Missense,VUS,No,C0,0.0148,0.8716,0.1034,Indeterminate,,Main_study
+V2739I,c.8215G>A,p.Val2739Ile,DBD,2739,Missense,VUS,No,C0,0.0302,0.0506,0,Functional,,Main_study
+L2740X,c.8219T>G,p.Leu2740*,DBD,2740,Nonsense,Known_pathogenic,No,,1,NA,1,Nonfunctional,Known pathogenic,Main_study
+R2784W,c.8350C>T,p.Arg2784Trp,DBD,2784,Missense,VUS,No,C65,0.9952,0.9724,0.9998,Nonfunctional,,Main_study
+A2786P,c.8356G>C,p.Ala2786Pro,DBD,2786,Missense,VUS,No,C45,1,NA,1,Nonfunctional,,Main_study
+W2788S,c.8363G>C,p.Trp2788Ser,DBD,2788,Missense,VUS,No,C65,0.0516,0.9976,0.9444,Indeterminate,,Main_study
+G2793R,c.8377G>A,p.Gly2793Arg,DBD,2793,Missense,VUS,No,C55,1,NA,1,Nonfunctional,,Main_study
+Q2829X,c.8485C>T,p.Gln2829*,DBD,2829,Nonsense,VUS,Yes,,1,NA,1,Nonfunctional,Near splice site of exon 19,Main_study
+Q2829L,c.8486A>T,p.Gln2829Leu,DBD,2829,Missense,VUS,Yes,C55,1,NA,1,Nonfunctional,Near splice site of exon 19,Main_study
+Q2829R,c.8486A>G,p.Gln2829Arg,DBD,2829,Missense,VUS,Yes,C25,1,NA,1,Nonfunctional,Near splice site of exon 19,Main_study
+P3063S,c.9187C>T,p.Pro3063Ser,C-terminal,3063,Missense,VUS,No,C25,0.1998,0.1978,0.1278,Indeterminate,,Main_study
+D3064N,c.9190G>A,p.Asp3064Asn,C-terminal,3064,Missense,VUS,No,C0,0.0004,0.0566,0,Functional,,Main_study
+D3064Y,c.9191A>T,p.Asp3064Tyr,C-terminal,3064,Missense,VUS,No,C35,0.0100,0.0688,0,Functional,,Main_study
+F3065L,c.9195T>A,p.Phe3065Leu,C-terminal,3065,Missense,VUS,No,C0,0.0236,0.0448,0.0006,Functional,,Main_study
+Q3066E,c.9196C>G,p.Gln3066Glu,C-terminal,3066,Missense,VUS,No,C0,0.0152,0.0336,0.0004,Functional,,Main_study
+C3069X,c.9207C>A,p.Cys3069*,C-terminal,3069,Nonsense,Known_pathogenic,No,,1,0.9924,1,Nonfunctional,Known pathogenic,Main_study
+D3073G,c.9218A>G,p.Asp3073Gly,C-terminal,3073,Missense,Known_pathogenic,No,C65,0.8888,0.9996,0.9966,Nonfunctional,Known pathogenic,Main_study
+Y3225Ifs,c.9675_9676insA,p.Tyr3225Ilefs*12,C-terminal,3225,Frameshift,VUS,No,,1,NA,1,Nonfunctional,Frameshift,Main_study
+C3233Wfs,c.9699_9702delTATG,p.Cys3233Trpfs*13,C-terminal,3233,Frameshift,Special_interpretation,No,,0.9996,0.9744,1,Nonfunctional,"Frameshift, special interpretation",Main_study
+Y3308X,c.9924T>A,p.Tyr3308*,C-terminal,3308,Nonsense,VUS,No,,1,0.9392,1,Nonfunctional,Nonsense,Main_study
