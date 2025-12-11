@@ -9,7 +9,7 @@ INPUT_DIR = pathlib.Path(".")
 OUTPUT_FILE = INPUT_DIR / "MSH2_master_dataframe_updated.csv"
 
 # File paths
-CRAVAT_FILE = INPUT_DIR / "cravat_msh2_cleaned.tsv.gz"
+CRAVAT_FILE = INPUT_DIR / "MSH2/MSH2_annotated.csv.gz"
 PILLAR_FILE = INPUT_DIR / "MSH2/MSH2_pillar_data.csv.gz"
 JIA_FILE = INPUT_DIR / "MSH2/Jia MSH2 2021.xlsx"
 OLLODART_FILE = INPUT_DIR / "MSH2/Ollodart2020.xlsx"
@@ -74,36 +74,50 @@ def load_cravat(filepath):
     print(f"Loading CRAVAT file from {filepath}...")
     
     # Load FULL file
-    df = pd.read_csv(filepath, sep='\t', low_memory=False)
+    # The file extension is .csv.gz, so we should assume comma separator.
+    # The previous code used sep='\t' which caused it to read the entire header as one column.
+    df = pd.read_csv(filepath, sep=',', low_memory=False)
     
     # Filter for MSH2 gene if needed (though file name implies MSH2)
-    if 'Variant_Annotation_Gene' in df.columns:
-        df = df[df['Variant_Annotation_Gene'] == 'MSH2'].copy()
+    if 'hugo' in df.columns:
+        df = df[df['hugo'] == 'MSH2'].copy()
         
     # Rename key columns for consistent merging/schema
-    # Note: We are keeping all other columns as-is or prefixed if collision occurs.
-    # The 'rename_map' handles the critical columns we use in TARGET_COLUMNS.
+    # NOTE: The keys here must match EXACTLY with the CSV header
     rename_map = {
-        'Variant_Annotation_Gene': 'Gene',
-        'Variant_Annotation_Transcript': 'Ensembl_transcript_ID', # Mapped from Cravat Transcript
-        'Extra_VCF_INFO_Annotations_TRANSCRIPT': 'Ref_seq_transcript_ID', # Mapped from Cravat Extra VCF Transcript
-        'Variant_Annotation_cDNA_change': 'HGVSc.',
-        'Variant_Annotation_Protein_Change': 'HGVSp.',
-        'Variant_Annotation_Chrom': 'Chrom',
-        'Variant_Annotation_Position': 'hg38_start',
-        'Variant_Annotation_End_Position': 'hg38_end',
-        'Variant_Annotation_Ref_Base': 'ref_allele',
-        'Variant_Annotation_Alt_Base': 'alt_allele',
-        'gnomAD_Global_AF': 'gnomad_MAF',
-        'ClinVar_Clinical_Significance': 'clinvar_sig_2025',
-        'ClinVar_Review_Status': 'clinvar_star_2025_raw',
-        'SpliceAI_Acceptor_Gain_Score': 'spliceAI_DS_AG',
-        'SpliceAI_Acceptor_Loss_Score': 'spliceAI_DS_AL',
-        'SpliceAI_Donor_Gain_Score': 'spliceAI_DS_DG',
-        'SpliceAI_Donor_Loss_Score': 'spliceAI_DS_DL'
+        'hugo': 'Gene',
+        'transcript': 'Ensembl_transcript_ID', 
+        'extra_vcf_info.HGVS_TRANSCRIPT': 'Ref_seq_transcript_ID', 
+        'cchange': 'HGVSc.',
+        'achange': 'HGVSp.',
+        'chrom': 'Chrom',
+        'pos': 'hg38_start',
+        'gposend': 'hg38_end',
+        'ref_base': 'ref_allele',
+        'alt_base': 'alt_allele',
+        'gnomad.af': 'gnomad_MAF',
+        'clinvar.sig': 'clinvar_sig_2025',
+        'clinvar.rev_stat': 'clinvar_star_2025_raw',
+        'spliceai.ds_ag': 'spliceAI_DS_AG',
+        'spliceai.ds_al': 'spliceAI_DS_AL',
+        'spliceai.ds_dg': 'spliceAI_DS_DG',
+        'spliceai.ds_dl': 'spliceAI_DS_DL'
     }
+
+    # Strip any potential whitespace from column names before renaming
+    df.columns = df.columns.str.strip()
+    
+    # Perform renaming
     df = df.rename(columns=rename_map)
     
+    # Ensure HGVSp. exists
+    if 'HGVSp.' not in df.columns:
+        print("Error: HGVSp. column missing after rename. Available columns:")
+        print(df.columns.tolist())
+        # Return empty DF to avoid crashing later, or raise error?
+        # Let's raise to fail fast
+        raise KeyError("HGVSp. column missing")
+            
     # Map ClinVar stars
     def map_stars(status):
         if pd.isna(status): return np.nan
@@ -117,7 +131,7 @@ def load_cravat(filepath):
         
     if 'clinvar_star_2025_raw' in df.columns:
         df['clinvar_star_2025'] = df['clinvar_star_2025_raw'].apply(map_stars)
-    
+
     # Generate Join Key and AA fields
     print("Parsing HGVSp in CRAVAT data...")
     parsed = df['HGVSp.'].apply(parse_hgvsp)
@@ -206,24 +220,11 @@ def load_bouvet(filepath):
             df = df.drop_duplicates(subset=['join_key'])
         
         # MT assay result: "77.12% Potentially damaging"
-        # We need to extract the score (77.12) and maybe the class if "Potentially damaging" is the class.
-        # Or use 'French Classification' / 'InSiGHT Classification'.
-        # User wants 'Bouvet_auth_reported_functional_class'. French or InSiGHT seems more "classification" than the raw text.
-        # I will use 'French Classification' as it had '3*' in the sample.
+        # Extract score and class
+        extracted = df['MT assay result'].astype(str).str.extract(r'([\d\.]+)%\s*(.*)')
         
-        # Extract score number from 'MT assay result'
-        def extract_score(val):
-            if pd.isna(val): return np.nan
-            m = re.match(r'([\d\.]+)', str(val))
-            if m:
-                return float(m.group(1))
-            return np.nan
-            
-        df['MSH2_Bouvet_auth_func_score'] = df['MT assay result'].apply(extract_score)
-        
-        df = df.rename(columns={
-            'French Classification': 'Bouvet_auth_reported_functional_class'
-        })
+        df['MSH2_Bouvet_auth_func_score'] = pd.to_numeric(extracted[0], errors='coerce')
+        df['Bouvet_auth_reported_functional_class'] = extracted[1]
         
         cols = ['join_key', 'MSH2_Bouvet_auth_func_score', 'Bouvet_auth_reported_functional_class']
         cols = [c for c in cols if c in df.columns]

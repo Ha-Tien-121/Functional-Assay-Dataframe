@@ -58,7 +58,38 @@ def parse_hgvsp(hgvsp):
 
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
     
-    # Pattern 3: Synonymous/Other (e.g., Met779=, M779=) - ignoring for now or mapping?
+    # Pattern 3: Complex cases (fs, del range, ext, etc.)
+    # e.g. Gly669LysfsTer?, Ala2_Met26del, Met1?, Ter935ArgextTer7
+    match_complex = re.match(r'^([A-Z][a-z]{2})(\d+)(.*)$', clean)
+    if match_complex:
+        ref_3, pos, remainder = match_complex.groups()
+        ref = AA_3_TO_1.get(ref_3, '?')
+        
+        alt = '?'
+        if 'fs' in remainder:
+            alt = 'fs'
+        elif 'del' in remainder:
+            alt = 'del'
+        elif 'ins' in remainder:
+            alt = 'ins'
+        elif 'dup' in remainder:
+            alt = 'dup'
+        elif 'ext' in remainder:
+            alt = 'ext'
+        elif remainder == '?':
+            alt = '?'
+        else:
+             # Try to find an alt AA at start of remainder e.g. Lys...
+             # Only if it looks like a standard substitution that fell through
+             match_alt = re.match(r'^([A-Z][a-z]{2})', remainder)
+             if match_alt:
+                 alt = AA_3_TO_1.get(match_alt.group(1), '?')
+             elif remainder in ['Ter', '*']:
+                 alt = '*'
+
+        return int(pos), ref, alt, f"{ref}{pos}{alt}"
+    
+    # Pattern 4: Synonymous/Other (e.g., Met779=, M779=) - ignoring for now or mapping?
     # If standard 3-letter but same ref/alt (Met779Met), the regex above might catch it if pattern matches.
     
     return None, None, None, None
