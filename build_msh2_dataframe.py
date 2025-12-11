@@ -390,5 +390,21 @@ def main():
     final_df.to_parquet(parquet_file, index=False)
     print(f"Written parquet to {parquet_file}")
 
+    # 8. Write Unmapped Variants
+    # Generate a another csv called "variants_not_mapped" that recreates the MSH2_master_dataframe_updated.csv structure
+    # but only populates the variants where aa_pos, aa_ref, aa_alt are blanks (missing). No duplicates
+    UNMAPPED_FILE = INPUT_DIR / "variants_not_mapped.csv"
+    
+    # Filter for unmapped variants: aa_pos, aa_ref, aa_alt are blank/null
+    unmapped_mask = final_df['aa_pos'].isna() & final_df['aa_ref'].isna() & final_df['aa_alt'].isna()
+    unmapped_df = final_df[unmapped_mask].copy()
+    
+    # Remove duplicates
+    if unmapped_df.duplicated().any():
+        unmapped_df = unmapped_df.drop_duplicates()
+        
+    print(f"Writing {len(unmapped_df)} unmapped variants to {UNMAPPED_FILE}...")
+    unmapped_df.to_csv(UNMAPPED_FILE, index=False)
+
 if __name__ == "__main__":
     main()
