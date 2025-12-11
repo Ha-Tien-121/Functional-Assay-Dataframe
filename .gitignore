@@ -3,4 +3,5 @@ MSH2_master_dataframe*.parquet
 __pycache__/
 *.pyc
 cravat_msh2_cleaned.tsv
+cravat_msh2_cleaned.tsv.gz
 final_pillar_data_with_clinvar_18_25_gnomad_wREVEL_wAM_wspliceAI_wMutpred2_wtrainvar_gold_standards_expanded_111225.csv.gz

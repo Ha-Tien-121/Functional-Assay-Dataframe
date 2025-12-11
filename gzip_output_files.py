@@ -11,7 +11,7 @@ for filename in files_to_gzip:
     if os.path.exists(filename):
         print(f"Compressing {filename}...")
         with open(filename, 'rb') as f_in:
-            output_filename = f"{filename}.new.gz"
+            output_filename = f"{filename}.gz"
             print(f"Compressing to {output_filename}...")
             with gzip.open(output_filename, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
@@ -20,7 +20,7 @@ for filename in files_to_gzip:
         os.remove(filename)
         print(f"Removed original {filename}")
         
-        # Try to rename new gz to original gz name if possible, otherwise keep .new.gz
+        # Try to rename new gz to original gz name if possible, otherwise keep .gz
         target_gz = f"{filename}.gz"
         try:
             if os.path.exists(target_gz):
