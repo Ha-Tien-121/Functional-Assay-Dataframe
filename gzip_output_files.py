@@ -3,9 +3,26 @@ import shutil
 import os
 
 files_to_gzip = [
-    "MSH2_master_dataframe_updated.csv",
-    "MSH2_master_dataframe_updated.parquet", 
-    "MSH2_variants_not_merged.csv",
+    "VHL_master_dataframe.csv",
+    "VHL_master_dataframe.parquet", 
+    "VHL_variants_not_merged.csv", 
+    "VHL_variants_not_mapped.csv",
+    "BRCA1_master_dataframe.csv",
+    "BRCA1_master_dataframe.parquet", 
+    "BRCA1_variants_not_merged.csv", 
+    "BRCA1_variants_not_mapped.csv",
+    "BRCA2_master_dataframe.csv",
+    "BRCA2_master_dataframe.parquet", 
+    "BRCA2_variants_not_merged.csv", 
+    "BRCA2_variants_not_mapped.csv",
+    "PTEN_master_dataframe.csv",
+    "PTEN_master_dataframe.parquet", 
+    "PTEN_variants_not_merged.csv", 
+    "PTEN_variants_not_mapped.csv",
+    "TP53_master_dataframe.csv",
+    "TP53_master_dataframe.parquet", 
+    "TP53_variants_not_merged.csv", 
+    "TP53_variants_not_mapped.csv",
 ]
 
 for filename in files_to_gzip:
@@ -18,8 +35,8 @@ for filename in files_to_gzip:
                 shutil.copyfileobj(f_in, f_out)
         print(f"Created {output_filename}")
         # Removing original file to mimic gzip behavior
-        # os.remove(filename)
-        # print(f"Removed original {filename}")
+        os.remove(filename)
+        print(f"Removed original {filename}")
         
         # Try to rename new gz to original gz name if possible, otherwise keep .gz
         target_gz = f"{filename}.gz"
