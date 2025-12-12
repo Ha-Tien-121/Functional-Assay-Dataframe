@@ -4,7 +4,8 @@ import os
 
 files_to_gzip = [
     "MSH2_master_dataframe_updated.csv",
-    "MSH2_master_dataframe_updated.parquet"
+    "MSH2_master_dataframe_updated.parquet", 
+    "MSH2_variants_not_merged.csv",
 ]
 
 for filename in files_to_gzip:
@@ -17,11 +18,17 @@ for filename in files_to_gzip:
                 shutil.copyfileobj(f_in, f_out)
         print(f"Created {output_filename}")
         # Removing original file to mimic gzip behavior
-        os.remove(filename)
-        print(f"Removed original {filename}")
+        # os.remove(filename)
+        # print(f"Removed original {filename}")
         
         # Try to rename new gz to original gz name if possible, otherwise keep .gz
         target_gz = f"{filename}.gz"
+        
+        # If output_filename is already target_gz, we are done
+        if os.path.abspath(output_filename) == os.path.abspath(target_gz):
+            print(f"File is already named {target_gz}")
+            continue
+
         try:
             if os.path.exists(target_gz):
                 os.remove(target_gz)

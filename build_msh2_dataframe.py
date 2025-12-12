@@ -98,6 +98,7 @@ def load_cravat(filepath):
         'gnomad.af': 'gnomad_MAF',
         'clinvar.sig': 'clinvar_sig_2025',
         'clinvar.rev_stat': 'clinvar_star_2025_raw',
+        'clinvar.date_last_reviewed': 'clinvar_date_last_reviewed_2025',
         'spliceai.ds_ag': 'spliceAI_DS_AG',
         'spliceai.ds_al': 'spliceAI_DS_AL',
         'spliceai.ds_dg': 'spliceAI_DS_DG',
@@ -237,7 +238,7 @@ def load_bouvet(filepath):
 def load_pillar(filepath):
     """
     Loads MSH2 pillar data to get ClinVar 2025 date/stars.
-    Returns DataFrame with 'join_key', 'clinvar_date_last_reviewed_2025', 'clinvar_star_2025'.
+    Returns DataFrame with 'join_key'.
     (Transcripts now come from Cravat map)
     """
     print(f"Loading Pillar file from {filepath}...")
@@ -245,7 +246,6 @@ def load_pillar(filepath):
         # Load only necessary columns
         usecols = [
             'hgvs_p', 'aa_pos', 'aa_ref', 'aa_alt',
-            'clinvar_star_2025', 'clinvar_date_last_reviewed_2025'
         ]
         df = pd.read_csv(filepath, usecols=lambda x: x in usecols, low_memory=False)
         
@@ -279,23 +279,18 @@ def load_pillar(filepath):
             
         # Select final columns to merge
         out_cols = [
-            'join_key', 
-            'clinvar_star_2025', 
-            'clinvar_date_last_reviewed_2025'
+            'join_key'
         ]
         
         df = df[out_cols].dropna(subset=['join_key'])
         
         if df.duplicated(subset=['join_key']).any():
-            # If multiple entries, prefer one with date?
-            # Sort by date descending (NaNs last) to pick most reviewed/recent
-            df = df.sort_values('clinvar_date_last_reviewed_2025', ascending=False)
             df = df.drop_duplicates(subset=['join_key'])
             
         return df
     except Exception as e:
         print(f"Error loading Pillar: {e}")
-        return pd.DataFrame(columns=['join_key', 'clinvar_star_2025', 'clinvar_date_last_reviewed_2025'])
+        return pd.DataFrame(columns=['join_key'])
 
 def main():
     print("Starting pipeline...")
@@ -319,6 +314,15 @@ def main():
     print(f"Jia variants: {len(jia_df)}")
     print(f"Ollodart variants: {len(ollodart_df)}")
     print(f"Bouvet variants: {len(bouvet_df)}")
+
+    # Store individual source dfs for later check
+    source_dfs = {
+        "Cravat": cravat_df,
+        "Pillar": pillar_df,
+        "Jia": jia_df,
+        "Ollodart": ollodart_df,
+        "Bouvet": bouvet_df,
+    }
     
     # 4. Merge
     # Left join onto Cravat. 
@@ -333,13 +337,13 @@ def main():
     # We want to overwrite or fill the clinvar columns from Cravat with Pillar data
     merged = merged.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
     
-    # Update/Override ClinVar columns
-    if 'clinvar_star_2025_pillar' in merged.columns:
-        # Use Pillar star if available, else keep existing
-        merged['clinvar_star_2025'] = merged['clinvar_star_2025_pillar'].fillna(merged['clinvar_star_2025'])
+    # # Update/Override ClinVar columns
+    # if 'clinvar_star_2025_pillar' in merged.columns:
+    #     # Use Pillar star if available, else keep existing
+    #     merged['clinvar_star_2025'] = merged['clinvar_star_2025_pillar'].fillna(merged['clinvar_star_2025'])
     
-    if 'clinvar_date_last_reviewed_2025_pillar' in merged.columns:
-        merged['clinvar_date_last_reviewed_2025'] = merged['clinvar_date_last_reviewed_2025_pillar']
+    # if 'clinvar_date_last_reviewed_2025_pillar' in merged.columns:
+    #     merged['clinvar_date_last_reviewed_2025'] = merged['clinvar_date_last_reviewed_2025_pillar']
         
     # Transcripts are now mapped in Cravat load step, so no need to map from Pillar here.
     
@@ -405,6 +409,122 @@ def main():
         
     print(f"Writing {len(unmapped_df)} unmapped variants to {UNMAPPED_FILE}...")
     unmapped_df.to_csv(UNMAPPED_FILE, index=False)
+
+    # 9. Write Variants Not Merged
+    # Identify variants from individual datasets (Jia, Ollodart, Bouvet, Pillar, Cravat) that did NOT make it into final_df
+    # This happens if a variant exists in a source but not in the backbone (Cravat) and we did left joins.
+    # However, Cravat itself is a source. If Cravat variants are dropped, it might be due to filtering or merging issues.
+    # Typically, this check finds variants in secondary datasets (Jia, Ollodart, etc.) that don't match any join_key in Cravat.
+
+    NOT_MERGED_FILE = INPUT_DIR / "MSH2_variants_not_merged.csv"
+    print("Computing variants not merged...")
+
+    # Get keys in master
+    master_keys = final_df["join_key"].dropna().drop_duplicates()
+
+    # Build long table of all source keys
+    records = []
+    for dataset_name, df in source_dfs.items():
+        if "join_key" not in df.columns:
+            continue
+        
+        # Select unique keys from this source
+        tmp = df[["join_key"]].dropna().drop_duplicates().copy()
+        tmp["dataset"] = dataset_name
+        records.append(tmp)
+
+    if records:
+        all_source_keys = pd.concat(records, ignore_index=True)
+    else:
+        all_source_keys = pd.DataFrame(columns=["join_key", "dataset"])
+
+    # Aggregate datasets per variant
+    if not all_source_keys.empty:
+        datasets_per_variant = (
+            all_source_keys
+            .groupby("join_key")["dataset"]
+            .apply(lambda x: ";".join(sorted(x.unique())))
+            .reset_index(name="datasets_present")
+        )
+    else:
+        datasets_per_variant = pd.DataFrame(columns=["join_key", "datasets_present"])
+
+    # Find variants NOT in master
+    # Anti-join
+    not_merged_mask = ~datasets_per_variant["join_key"].isin(master_keys)
+    variants_not_merged = datasets_per_variant[not_merged_mask].copy()
+
+    # Enrich unmerged variants with data from source dataframes
+    print("Enriching unmerged variants with source data...")
+    
+    # 1. Merge Functional Data
+    # Use variants_not_merged (keys + datasets list) as base
+    unmerged_full = variants_not_merged.merge(jia_df, on='join_key', how='left')
+    unmerged_full = unmerged_full.merge(ollodart_df, on='join_key', how='left')
+    unmerged_full = unmerged_full.merge(bouvet_df, on='join_key', how='left')
+    
+    # 2. Merge Pillar (if it contains extra info)
+    unmerged_full = unmerged_full.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+    
+    # 3. Merge Cravat (Unlikely to match, but consistent with structure)
+    unmerged_full = unmerged_full.merge(cravat_df, on='join_key', how='left')
+    
+    # 4. Fill Metadata
+    unmerged_full['Gene'] = 'MSH2'
+    unmerged_full['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:7325')
+    
+    # Transcript IDs
+    if 'Ensembl_transcript_ID' not in unmerged_full.columns:
+        unmerged_full['Ensembl_transcript_ID'] = np.nan
+    unmerged_full['Ensembl_transcript_ID'] = unmerged_full['Ensembl_transcript_ID'].fillna(mave_meta.get('Ensembl_transcript_ID', np.nan))
+    
+    if 'Ref_seq_transcript_ID' not in unmerged_full.columns:
+        unmerged_full['Ref_seq_transcript_ID'] = np.nan
+    unmerged_full['Ref_seq_transcript_ID'] = unmerged_full['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
+
+    # Intervals
+    for i in range(1, 4):
+        unmerged_full[f'Interval {i} name'] = mave_meta.get(f'Interval {i} name', np.nan)
+        unmerged_full[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
+        unmerged_full[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
+
+    # 5. Attempt to parse AA change from join_key if columns missing
+    # join_key format expected: RefPosAlt e.g. M1V
+    def parse_key_to_aa(key):
+        match = re.match(r'^([A-Z])(\d+)([A-Z\*])$', str(key))
+        if match:
+            return match.groups()
+        return (np.nan, np.nan, np.nan)
+
+    if 'aa_pos' not in unmerged_full.columns or unmerged_full['aa_pos'].isna().all():
+        # Parse join_key
+        parsed_aa = unmerged_full['join_key'].apply(parse_key_to_aa)
+        unmerged_full['aa_ref'] = parsed_aa.apply(lambda x: x[0])
+        unmerged_full['aa_pos'] = parsed_aa.apply(lambda x: x[1])
+        unmerged_full['aa_alt'] = parsed_aa.apply(lambda x: x[2])
+    
+    # HGVSp. construction if missing
+    if 'HGVSp.' not in unmerged_full.columns or unmerged_full['HGVSp.'].isna().all():
+         # Construct simplified HGVSp
+         unmerged_full['HGVSp.'] = unmerged_full.apply(
+             lambda r: f"p.{r['aa_ref']}{r['aa_pos']}{r['aa_alt']}" 
+             if pd.notna(r['aa_pos']) and pd.notna(r['aa_ref']) else np.nan,
+             axis=1
+         )
+
+    # 6. Align with Master Dataframe Columns
+    for col in final_df.columns:
+        if col not in unmerged_full.columns:
+            unmerged_full[col] = np.nan
+            
+    # Select final columns: datasets_present + master columns
+    final_cols_ordered = ['datasets_present'] + list(final_df.columns)
+    
+    # Filter and reorder
+    variants_not_merged_enriched = unmerged_full[final_cols_ordered].copy()
+
+    print(f"Writing {len(variants_not_merged_enriched)} not-merged variants to {NOT_MERGED_FILE}...")
+    variants_not_merged_enriched.to_csv(NOT_MERGED_FILE, index=False)
 
 if __name__ == "__main__":
     main()
