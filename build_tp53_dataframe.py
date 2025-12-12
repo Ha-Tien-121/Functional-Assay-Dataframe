@@ -16,6 +16,7 @@ FUNK_FILE = INPUT_DIR / "TP53/Funk et al. Supplementary tables.xlsx - Supp_Table
 KOTLER_FILE = INPUT_DIR / "TP53/Kotler et al Supplemental table.xlsx - H1299_RFS_sequence_variants.csv"
 KATO_FILE = INPUT_DIR / "TP53/TP53_pillar_data.csv.gz"
 GIACOMELLI_FILE = INPUT_DIR / "TP53/TP53_pillar_data.csv.gz"
+FUNCTIONAL_WORKSHEET = INPUT_DIR / "TP53/TP53_Functional_Worksheet.xlsx",
 # KAWAGUCHI_FILE = INPUT_DIR / ""
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
 
