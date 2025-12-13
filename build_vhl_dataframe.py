@@ -241,9 +241,9 @@ def main():
     buckley_df = load_generic_dataset(BUCKLEY_FILE, "Buckley_2016")
 
     dataset_dfs = {
-        "Cravat": cravat_df,
-        "Pillar": pillar_df,
-        "Buckley_2016": buckley_df
+        "CRAVAT_FILE": cravat_df,
+        "PILLAR_FILE": pillar_df,
+        "BUCKLEY_FILE": buckley_df
     }
 
     master_df = cravat_df.copy()

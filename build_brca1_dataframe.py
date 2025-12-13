@@ -15,7 +15,7 @@ PILLAR_FILE = INPUT_DIR / "BRCA1/BRCA1_pillar_data.csv"
 FINDLAY_FILE = INPUT_DIR / "BRCA1/BRCA1_pillar_data.csv"
 ADAMOVICH_HDR_FILE = INPUT_DIR / "BRCA1/BRCA1_pillar_data.csv"
 ADAMOVICH_CISPLATIN_FILE = INPUT_DIR / "BRCA1/BRCA1_pillar_data.csv"
-FERNANDES_FILE = INPUT_DIR / "BRCA1/supp_RA118.005274_139996_2_supp_282032_pm8gkd.xlsx - Supp. Table 1.csv"
+FERNANDES_FILE = INPUT_DIR / "BRCA1/supp_RA118.005274_139996_2_supp_282032_pm8gkd.xlsx - Supp. Table 3.csv"
 BOUWMAN_2013_FILE = INPUT_DIR / "BRCA1/supplementary_table_s3_mean_BRCA1_Bouwman_2013_PMID23867111.csv"
 BOUWMAN_2020_FILE = INPUT_DIR / "BRCA1/Supplementary Table S2_BRCA1_Bouwman_2020_PMID32546644.xlsx - Sheet1.csv"
 CALECA_FILE = INPUT_DIR / "BRCA1/table3_Caleca_BRCA1_BRCA2_2019_PMID30696104.csv"
@@ -333,29 +333,31 @@ def main():
     bassi_df = load_generic_dataset(BASSI_FILE, "Bassi_2023")
     langerud_df = load_generic_dataset(LANGERUD_FILE, "Langerud")
     langerud_2018_df = load_generic_dataset(LANGERUD_FILE, "Langerud_2018") # Same file?
-    lee_2010_df = load_generic_dataset(LEE_FILE_2, "Lee_2010") # Using Table 2 as primary? Or merge all Lee files?
-    # Note: Lee might be split across multiple files. For now loading one.
+    lee_2010_df_1 = load_generic_dataset(LEE_FILE_1, "Lee_2010_1")
+    lee_2010_df_2 = load_generic_dataset(LEE_FILE_2, "Lee_2010_2")
+    lee_2010_df_3 = load_generic_dataset(LEE_FILE_3, "Lee_2010_3")
     starita_df = load_generic_dataset(STARITA_FILE, "Starita", file_type='tsv')
     hart_2018_df = load_generic_dataset(HART_FILE, "Hart_2018")
 
     dataset_dfs = {
-        "Cravat": cravat_df,
-        "Pillar": pillar_df,
-        "Findlay": findlay_df,
-        "Adamovich_Hdr": adamovich_hdr_df,
-        "Adamovich_Cisplatin": adamovich_cisplatin_df,
-        "Fernandes": fernandes_df,
-        "Bouwman_2013": bouwman_2013_df,
-        "Bouwman_2020": bouwman_2020_df,
-        "Caleca_2019": caleca_df,
-        "Gou_2023": gou_df,
-        "Fayer_2021": fayer_df,
-        "Bassi_2023": bassi_df,
-        "Langerud": langerud_df,
-        "Langerud_2018": langerud_2018_df,
-        "Lee_2010": lee_2010_df,
-        "Starita": starita_df,
-        "Hart_2018": hart_2018_df
+        "CRAVAT_FILE": cravat_df,
+        "PILLAR_FILE": pillar_df,
+        "FINDLAY_FILE": findlay_df,
+        "ADAMOVICH_HDR_FILE": adamovich_hdr_df,
+        "ADAMOVICH_CISPLATIN_FILE": adamovich_cisplatin_df,
+        "FERNANDES_FILE": fernandes_df,
+        "BOUWMAN_2013_FILE": bouwman_2013_df,
+        "BOUWMAN_2020_FILE": bouwman_2020_df,
+        "CALECA_FILE": caleca_df,
+        "GOU_FILE": gou_df,
+        "FAYER_FILE": fayer_df,
+        "BASSI_FILE": bassi_df,
+        "LANGERUD_FILE": langerud_df,
+        "LEE_FILE_1": lee_2010_df_1,
+        "LEE_FILE_2": lee_2010_df_2,
+        "LEE_FILE_3": lee_2010_df_3,
+        "STARITA_FILE": starita_df,
+        "HART_FILE": hart_2018_df
     }
 
     # 4. Initialize Master DataFrame (start with Cravat)

@@ -12,7 +12,7 @@ MAPPING_FILE = INPUT_DIR / "Functional Assay Mapping - Sheet1.csv"
 # File paths
 CRAVAT_FILE = INPUT_DIR / "PTEN/PTEN_annotated.csv.gz"
 PILLAR_FILE = INPUT_DIR / "PTEN/PTEN_pillar_data.csv.gz"
-FAYER_FILE = INPUT_DIR / "PTEN/Fayer et al data.xlsx - Table_S1.csv"
+FAYER_FILE = INPUT_DIR / "PTEN/Fayer et al data.xlsx - Table_S12.csv"
 MATREYEK_FILE = INPUT_DIR / "PTEN/PTEN_pillar_data.csv.gz"
 MIGHELL_FILE = INPUT_DIR / "PTEN/PTEN_pillar_data.csv.gz"
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
@@ -247,11 +247,11 @@ def main():
     mighell_df = load_generic_dataset(MIGHELL_FILE, "Mighell_2018")
 
     dataset_dfs = {
-        "Cravat": cravat_df,
-        "Pillar": pillar_df,
-        "Fayer_2021": fayer_df,
-        "Matreyek_2018": matreyek_df,
-        "Mighell_2018": mighell_df
+        "CRAVAT_FILE": cravat_df,
+        "PILLAR_FILE": pillar_df,
+        "FAYER_FILE": fayer_df,
+        "MATREYEK_FILE": matreyek_df,
+        "MIGHELL_FILE": mighell_df
     }
 
     master_df = cravat_df.copy()

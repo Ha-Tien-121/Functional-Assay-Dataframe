@@ -14,7 +14,7 @@ CRAVAT_FILE = INPUT_DIR / "BRCA2/BRCA2_annotated.csv.gz"
 PILLAR_FILE = INPUT_DIR / "BRCA2/BRCA2_pillar_data.csv"
 RICHARDSON_FILE = INPUT_DIR / "BRCA2/Supplemental_Table_1_Richardson_BRCA2_2021_PMID33609447.xlsx - Sheet1.csv"
 HU_FILE = INPUT_DIR / "BRCA2/BRCA2_pillar_data.csv"
-HUANG_FILE = INPUT_DIR / "BRCA2/SuppTables_Huang_BRCA2_2025_PMID39779857.xlsx - Table S1.csv"
+HUANG_FILE = INPUT_DIR / "BRCA2/SuppTables_Huang_BRCA2_2025_PMID39779857.xlsx - Table S3.csv"
 IKEGAMI_FILE = INPUT_DIR / "BRCA2/SuppData5_Ikegami_BRCA2_2020_PMID32444794.xlsx - Results of Bayesian inference.csv"
 HART_FILE = INPUT_DIR / "BRCA2/Table S2.xls - Table S2.csv"
 BISWAS_FILE = INPUT_DIR / "BRCA2/Table 1 extracted - Sheet1.csv"
@@ -274,20 +274,20 @@ def main():
     gou_df = load_generic_dataset(GOU_FILE, "Gou_2023")
 
     dataset_dfs = {
-        "Cravat": cravat_df,
-        "Pillar": pillar_df,
-        "Richardson_2021": richardson_df,
-        "Hu_2024": hu_df,
-        "Huang_2025": huang_df,
-        "Ikegami_2020": ikegami_df,
-        "Hart_2021": hart_2021_df,
-        "Biswas_2020": biswas_df,
-        "Mesman_2021": mesman_df,
-        "Guidugli_2018": guidugli_df,
-        "Sahu_2023": sahu_2023_df,
-        "Sahu_2025": sahu_2025_df,
-        "Caleca_2019": caleca_df,
-        "Gou_2023": gou_df
+        "CRAVAT_FILE": cravat_df,
+        "PILLAR_FILE": pillar_df,
+        "RICHARDSON_FILE": richardson_df,
+        "HU_FILE": hu_df,
+        "HUANG_FILE": huang_df,
+        "IKEGAMI_FILE": ikegami_df,
+        "HART_FILE": hart_2021_df,
+        "BISWAS_FILE": biswas_df,
+        "MESMAN_FILE": mesman_df,
+        "GUIDUGLI_FILE": guidugli_df,
+        "SAHU_2023_FILE": sahu_2023_df,
+        "SAHU_2025_FILE": sahu_2025_df,
+        "CALECA_FILE": caleca_df,
+        "GOU_FILE": gou_df
     }
 
     master_df = cravat_df.copy()

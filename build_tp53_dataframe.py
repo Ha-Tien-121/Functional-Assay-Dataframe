@@ -12,12 +12,10 @@ MAPPING_FILE = INPUT_DIR / "Functional Assay Mapping - Sheet1.csv"
 # File paths
 CRAVAT_FILE = INPUT_DIR / "TP53/TP53_annotated.csv.gz"
 PILLAR_FILE = INPUT_DIR / "TP53/TP53_pillar_data.csv.gz"
-FAYER_FILE = INPUT_DIR / "TP53/Fayer et al data.xlsx - Table_S1.csv"
-FUNK_FILE = INPUT_DIR / "TP53/Funk et al. Supplementary tables.xlsx - Supp_Table_1.csv"
+FAYER_FILE = INPUT_DIR / "TP53/Fayer et al data.xlsx - Table_S9.csv"
+FUNK_FILE = INPUT_DIR / "TP53/Funk et al. Supplementary tables.xlsx - Supp_Table_2.csv"
 KOTLER_FILE = INPUT_DIR / "TP53/Kotler et al Supplemental table.xlsx - H1299_RFS_sequence_variants.csv"
-KATO_FILE = INPUT_DIR / "TP53/TP53_pillar_data.csv.gz"
-GIACOMELLI_FILE = INPUT_DIR / "TP53/TP53_pillar_data.csv.gz"
-FUNCTIONAL_WORKSHEET = INPUT_DIR / "TP53/TP53_Functional_Worksheet.xlsx",
+FUNCTIONAL_WORKSHEET = INPUT_DIR / "TP53/Functional-worksheet.xlsx",
 # KAWAGUCHI_FILE = INPUT_DIR / ""
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
 
@@ -124,43 +122,6 @@ def load_cravat(filepath):
 
     return df
 
-def load_generic_dataset(filepath, name, key_col=None, file_type='csv'):
-    print(f"Loading {name} from {filepath}...")
-    try:
-        if file_type == 'excel':
-            df = pd.read_excel(filepath)
-        elif file_type == 'tsv':
-            df = pd.read_csv(filepath, sep='\t')
-        else:
-            df = pd.read_csv(filepath, low_memory=False)
-            
-        df.columns = df.columns.str.strip()
-        
-        if 'join_key' not in df.columns:
-            if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
-                 df['join_key'] = df.apply(
-                     lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
-                     if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
-                     axis=1
-                 )
-            elif 'HGVSp' in df.columns or 'hgvs_p' in df.columns:
-                col = 'HGVSp' if 'HGVSp' in df.columns else 'hgvs_p'
-                parsed = df[col].apply(parse_hgvsp)
-                df['join_key'] = parsed.apply(lambda x: x[3])
-            elif 'Variant' in df.columns:
-                 df['join_key'] = df['Variant'].astype(str).str.strip()
-            elif 'mutant' in df.columns:
-                 df['join_key'] = df['mutant'].astype(str).str.strip()
-                 
-        if 'join_key' in df.columns:
-             df = df.dropna(subset=['join_key'])
-             if df.duplicated(subset=['join_key']).any():
-                df = df.drop_duplicates(subset=['join_key'])
-        
-        return df
-    except Exception as e:
-        print(f"Error loading {name}: {e}")
-        return pd.DataFrame()
 
 def load_pillar(filepath):
     print(f"Loading Pillar file from {filepath}...")
@@ -199,6 +160,205 @@ def load_pillar(filepath):
         return df
     except Exception as e:
         print(f"Error loading Pillar: {e}")
+        return pd.DataFrame()
+
+def load_fayer_func_data(filepath):
+    print(f"Loading Fayer functional data from {filepath}...")
+    try:
+        # Fayer has header on row 1 (0-indexed)
+        # Note: User says file is Table_S9.csv now. Previous inspection was for S1.
+        # Format is: 'p_variant', 'Classifier_Prob_func_normal', etc.
+        # header=1 confirmed by inspect.
+        df = pd.read_csv(filepath, header=1)
+        df.columns = df.columns.str.strip()
+        
+        # Build join_key using p_variant
+        if 'p_variant' in df.columns:
+             # Expected format p.X123Y or similar
+             parsed = df['p_variant'].apply(parse_hgvsp)
+             df['join_key'] = parsed.apply(lambda x: x[3])
+        
+        if 'join_key' in df.columns:
+             df = df.dropna(subset=['join_key'])
+             if df.duplicated(subset=['join_key']).any():
+                df = df.drop_duplicates(subset=['join_key'])
+        else:
+             print("  Warning: Fayer file seems to lack 'p_variant' for join_key.")
+             # Fallback check
+             if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
+                 pass
+             else:
+                 return pd.DataFrame()
+                
+        # Select and rename columns
+        # Mapping:
+        # Classifier_Prob_func_normal -> TP53_Fayer_2021_Classifier_Prob_func_normal
+        # Classifier_Prob_func_abnormal -> TP53_Fayer_2021_Classifier_Prob_func_abnormal
+        # Classifier_prediction -> TP53_Fayer_2021_Classifier_prediction
+        
+        cols_to_keep = ['join_key']
+        rename_map = {}
+        
+        if 'Classifier_Prob_func_normal' in df.columns:
+            cols_to_keep.append('Classifier_Prob_func_normal')
+            rename_map['Classifier_Prob_func_normal'] = 'TP53_Fayer_2021_Classifier_Prob_func_normal'
+            
+        if 'Classifier_Prob_func_abnormal' in df.columns:
+            cols_to_keep.append('Classifier_Prob_func_abnormal')
+            rename_map['Classifier_Prob_func_abnormal'] = 'TP53_Fayer_2021_Classifier_Prob_func_abnormal'
+            
+        if 'Classifier_prediction' in df.columns:
+            cols_to_keep.append('Classifier_prediction')
+            rename_map['Classifier_prediction'] = 'TP53_Fayer_2021_Classifier_prediction'
+            
+        df = df[cols_to_keep].rename(columns=rename_map)
+        print(f"  Loaded {len(df)} variants from Fayer")
+        return df
+    except Exception as e:
+        print(f"Error loading Fayer: {e}")
+        return pd.DataFrame()
+
+def load_funk_func_data(filepath):
+    print(f"Loading Funk functional data from {filepath}...")
+    try:
+        # Funk has header on row 2 (0-indexed) based on inspect
+        df = pd.read_csv(filepath, header=2)
+        df.columns = df.columns.str.strip()
+        
+        # Build join_key
+        # Use 'effect' column (e.g. p.Glu2Ala)
+        if 'join_key' not in df.columns:
+             if 'effect' in df.columns:
+                  parsed = df['effect'].apply(parse_hgvsp)
+                  df['join_key'] = parsed.apply(lambda x: x[3])
+             elif 'Variant' in df.columns:
+                  df['join_key'] = df['Variant'].astype(str).str.strip()
+             elif 'mutant' in df.columns:
+                  df['join_key'] = df['mutant'].astype(str).str.strip()
+             elif 'HGVS_p' in df.columns:
+                  parsed = df['HGVS_p'].apply(parse_hgvsp)
+                  df['join_key'] = parsed.apply(lambda x: x[3])
+             elif 'HGVSp' in df.columns:
+                  parsed = df['HGVSp'].apply(parse_hgvsp)
+                  df['join_key'] = parsed.apply(lambda x: x[3])
+
+        if 'join_key' in df.columns:
+             df = df.dropna(subset=['join_key'])
+             if df.duplicated(subset=['join_key']).any():
+                df = df.drop_duplicates(subset=['join_key'])
+                
+        # Select and rename columns
+        cols_to_keep = ['join_key']
+        rename_map = {}
+        
+        if 'rfs_median' in df.columns:
+            cols_to_keep.append('rfs_median')
+            rename_map['rfs_median'] = 'TP53_Funk_2025_rfs_median'
+            
+        df = df[cols_to_keep].rename(columns=rename_map)
+        print(f"  Loaded {len(df)} variants from Funk")
+        return df
+    except Exception as e:
+        print(f"Error loading Funk: {e}")
+        return pd.DataFrame()
+
+def load_kotler_func_data(filepath):
+    print(f"Loading Kotler functional data from {filepath}...")
+    try:
+        df = pd.read_csv(filepath)
+        df.columns = df.columns.str.strip()
+        
+        # Build join_key from AA_change (ref>alt) and Codon_num
+        if {"AA_change", "Codon_num"}.issubset(df.columns):
+            def make_kotler_key(r):
+                if pd.isna(r["AA_change"]) or pd.isna(r["Codon_num"]):
+                    return np.nan
+                try:
+                    # Kotler AA_change usually like "T>K" or just "K" if implicit?
+                    # User says "T>K", so split(">") should work.
+                    ref, alt = str(r["AA_change"]).split(">")
+                    return f"{ref}{int(r['Codon_num'])}{alt}"
+                except Exception:
+                    return np.nan
+            
+            df["join_key"] = df.apply(make_kotler_key, axis=1)
+        
+        # Drop NA join keys and duplicates
+        if 'join_key' in df.columns:
+             df = df.dropna(subset=['join_key'])
+             if df.duplicated(subset=['join_key']).any():
+                df = df.drop_duplicates(subset=['join_key'])
+        
+        print(f"  Kotler join_key example(s): {df['join_key'].head().tolist()}")
+        
+        # RFS_H1299 -> TP53_Kotler_RFS_H1299
+        cols_to_keep = ['join_key']
+        rename_map = {}
+        
+        if 'RFS_H1299' in df.columns:
+            cols_to_keep.append('RFS_H1299')
+            rename_map['RFS_H1299'] = 'TP53_Kotler_RFS_H1299'
+            
+        df = df[cols_to_keep].rename(columns=rename_map)
+        print(f"  Loaded {len(df)} variants from Kotler")
+        return df
+    except Exception as e:
+        print(f"Error loading Kotler: {e}")
+        return pd.DataFrame()
+
+def load_functional_worksheet(filepath):
+    print(f"Loading Functional Worksheet from {filepath}...")
+    try:
+        # Handle tuple path if present
+        ws_path = filepath[0] if isinstance(filepath, tuple) else filepath
+        df = pd.read_excel(ws_path, header=1)
+        df.columns = df.columns.str.strip()
+        
+        # Build join_key
+        # 'Protein change' column seems to be the key (e.g. E2A)
+        if 'Protein change' in df.columns:
+             df['join_key'] = df['Protein change'].astype(str).str.strip()
+        
+        if 'join_key' in df.columns:
+             df = df.dropna(subset=['join_key'])
+             # Drop duplicates?
+             if df.duplicated(subset=['join_key']).any():
+                df = df.drop_duplicates(subset=['join_key'])
+        else:
+             print("  Warning: No join key found in Functional Worksheet")
+             return pd.DataFrame()
+             
+        # Map columns
+        # Pattern: "{Dataset} class (PMID: ...)" -> "TP53_{Dataset}_func_class"
+        # Specifically:
+        # Funk class (PMID 39774325) -> TP53_Funk_2025_func_class
+        # Kotler class (PMID: 29979965) -> TP53_Kotler_func_class
+        # Kawaguchi class (PMID: 16007150) -> TP53_Kawaguchi_func_class
+        # Kato class (PMID: 12826609) -> TP53_Kato_func_class
+        # Giacomelli class (PMID: 30224644) -> TP53_Giacomelli_func_class
+        
+        cols_to_keep = ['join_key']
+        rename_map = {}
+        
+        mapping_rules = {
+            'Funk class (PMID 39774325)': 'TP53_Funk_2025_func_class',
+            'Kotler class (PMID: 29979965)': 'TP53_Kotler_func_class',
+            'Kawaguchi class (PMID: 16007150)': 'TP53_Kawaguchi_func_class',
+            'Kato class (PMID: 12826609)': 'TP53_Kato_func_class',
+            'Giacomelli class (PMID: 30224644)': 'TP53_Giacomelli_func_class'
+        }
+        
+        for src, dest in mapping_rules.items():
+            if src in df.columns:
+                cols_to_keep.append(src)
+                rename_map[src] = dest
+        
+        df = df[cols_to_keep].rename(columns=rename_map)
+        print(f"  Loaded {len(df)} variants from Functional Worksheet with columns: {list(rename_map.values())}")
+        return df
+
+    except Exception as e:
+        print(f"Error loading Functional Worksheet: {e}")
         return pd.DataFrame()
 
 def apply_functional_mappings(master_df, mapping_df, dataset_dfs, key_col="join_key"):
@@ -251,27 +411,44 @@ def main():
     print(f"Cravat variants loaded: {len(cravat_df)}")
     pillar_df = load_pillar(PILLAR_FILE)
     
-    fayer_df = load_generic_dataset(FAYER_FILE, "Fayer_2021")
-    funk_df = load_generic_dataset(FUNK_FILE, "Funk_2025")
-    kotler_df = load_generic_dataset(KOTLER_FILE, "Kotler")
-    kato_df = load_generic_dataset(KATO_FILE, "Kato")
-    giacomelli_df = load_generic_dataset(GIACOMELLI_FILE, "Giacomelli")
-    # kawaguchi_df = load_generic_dataset(KAWAGUCHI_FILE, "Kawaguchi")
+    # Load explicit datasets
+    fayer_func_df = load_fayer_func_data(FAYER_FILE)
+    funk_func_df = load_funk_func_data(FUNK_FILE)
+    kotler_func_df = load_kotler_func_data(KOTLER_FILE)
+    func_ws_df = load_functional_worksheet(FUNCTIONAL_WORKSHEET)
+    
 
     dataset_dfs = {
-        "Cravat": cravat_df,
-        "Pillar": pillar_df,
-        "Fayer_2021": fayer_df,
-        "Funk_2025": funk_df,
-        "Kotler": kotler_df,
-        "Kato": kato_df,
-        "Giacomelli": giacomelli_df
-        # "Kawaguchi": kawaguchi_df
+        "CRAVAT_FILE": cravat_df,
+        "PILLAR_FILE": pillar_df,
+        "FAYER_FILE": fayer_func_df, # Use processed df
+        "FUNK_FILE": funk_func_df, # Use processed df
+        "KOTLER_FILE": kotler_func_df, # Use processed df
+        "KATO_FILE": pillar_df,
+        "GIACOMELLI_FILE": pillar_df
     }
 
     master_df = cravat_df.copy()
     master_df = master_df.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+    
+    # Explicit merges for refactored datasets
+    print("Merging functional datasets...")
+    for df in [fayer_func_df, funk_func_df, kotler_func_df, func_ws_df]:
+        if df is not None and not df.empty:
+             # Check for overlapping columns to avoid suffix hell or overwrite
+             cols_to_merge = [c for c in df.columns if c != 'join_key']
+             
+             # If columns already exist in master, drop them first to ensure clean overwrite
+             for col in cols_to_merge:
+                 if col in master_df.columns:
+                     master_df = master_df.drop(columns=[col])
+                     
+             master_df = master_df.merge(df, on='join_key', how='left')
+
+    # Apply remaining mappings (e.g. Kato scores from Pillar)
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
+    
+    # No longer need the inline functional worksheet loading block
     
     master_df['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:11998')
     
