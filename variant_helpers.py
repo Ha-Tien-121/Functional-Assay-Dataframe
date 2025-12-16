@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import pathlib
 
 # Three letter to one letter map
 AA_3_TO_1 = {
@@ -7,43 +8,46 @@ AA_3_TO_1 = {
     'Gln': 'Q', 'Glu': 'E', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
     'Leu': 'L', 'Lys': 'K', 'Met': 'M', 'Phe': 'F', 'Pro': 'P',
     'Ser': 'S', 'Thr': 'T', 'Trp': 'W', 'Tyr': 'Y', 'Val': 'V',
-    'Ter': '*', 'Sec': 'U' # Selenocysteine
+    'Ter': '*', 'Sec': 'U', # Selenocysteine
+    'Stop': '*'
 }
 
 AA_1_TO_3 = {v: k for k, v in AA_3_TO_1.items()}
 
 def parse_hgvsp(hgvsp):
     """
-    Parses HGVSp string (e.g., 'p.Met779Arg', 'M779R', 'p.M779R') 
+    Parses HGVSp string (e.g., 'p.Met779Arg', 'M779R', 'p.M779R', 'p.Pro283=', 'p.Cys218Ter') 
     into (pos, ref, alt, short_code).
     
-    Returns (None, None, None, None) if parsing fails or synonymous/special (unless handled).
+    Returns (None, None, None, None) if parsing fails.
     """
     if not isinstance(hgvsp, str) or pd.isna(hgvsp):
         return None, None, None, None
 
-    clean = hgvsp.replace('p.', '')
+    clean = hgvsp.strip().replace('p.', '')
     
-    # Pattern 1: 3-letter (e.g., Met779Arg)
-    # Matches Ref(3)Pos(N)Alt(3)
-    # Also handles Ter
-    match_3 = re.match(r'^([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2}|Ter|\*|=|del|Del)$', clean)
+    # Handle synonymous cases explicitly if not caught by regex
+    # e.g. p.Pro283=
+    
+    # Pattern 1: 3-letter (e.g., Met779Arg, Cys218Ter, Pro283=)
+    # Matches Ref(3)Pos(N)Alt(3/Special)
+    match_3 = re.match(r'^([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2}|Ter|Stop|\*|=|del|Del)$', clean)
     if match_3:
-        ref_3, pos, alt_3 = match_3.groups()
+        ref_3, pos, alt_token = match_3.groups()
         ref = AA_3_TO_1.get(ref_3, '?')
-        if alt_3 in ['Ter', '*']:
+        
+        if alt_token in ['Ter', 'Stop', '*']:
             alt = '*'
-        elif alt_3 in ['del', 'Del']:
+        elif alt_token in ['del', 'Del']:
             alt = 'del'
-        elif alt_3 == '=':
-            # synonymous: same aa as ref
-            alt = ref
+        elif alt_token == '=':
+            alt = ref # Synonymous
         else:
-            alt = AA_3_TO_1.get(alt_3, '?')
+            alt = AA_3_TO_1.get(alt_token, '?')
         
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
 
-    # Pattern 2: 1-letter (e.g., M779R)
+    # Pattern 2: 1-letter (e.g., M779R, P283=, C218*)
     match_1 = re.match(r'^([A-Z])(\d+)([A-Z]|\*|=|del)$', clean)
     if match_1:
         ref, pos, alt_token = match_1.groups()
@@ -58,7 +62,7 @@ def parse_hgvsp(hgvsp):
 
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
     
-    # Pattern 3: Complex cases (fs, del range, ext, etc.)
+    # Pattern 3: Complex cases (fs, del range, ext, etc.) - retained from original
     # e.g. Gly669LysfsTer?, Ala2_Met26del, Met1?, Ter935ArgextTer7
     match_complex = re.match(r'^([A-Z][a-z]{2})(\d+)(.*)$', clean)
     if match_complex:
@@ -80,18 +84,12 @@ def parse_hgvsp(hgvsp):
             alt = '?'
         else:
              # Try to find an alt AA at start of remainder e.g. Lys...
-             # Only if it looks like a standard substitution that fell through
              match_alt = re.match(r'^([A-Z][a-z]{2})', remainder)
              if match_alt:
                  alt = AA_3_TO_1.get(match_alt.group(1), '?')
-             elif remainder in ['Ter', '*']:
+             elif remainder in ['Ter', '*', 'Stop']:
                  alt = '*'
 
         return int(pos), ref, alt, f"{ref}{pos}{alt}"
-    
-    # Pattern 4: Synonymous/Other (e.g., Met779=, M779=) - ignoring for now or mapping?
-    # If standard 3-letter but same ref/alt (Met779Met), the regex above might catch it if pattern matches.
-    
+
     return None, None, None, None
-
-

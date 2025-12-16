@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import re
 from variant_helpers import parse_hgvsp
+from dataset_loader import load_generic_dataset, apply_functional_mappings
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
@@ -20,7 +21,7 @@ BOUWMAN_2013_FILE = INPUT_DIR / "BRCA1/supplementary_table_s3_mean_BRCA1_Bouwman
 BOUWMAN_2020_FILE = INPUT_DIR / "BRCA1/Supplementary Table S2_BRCA1_Bouwman_2020_PMID32546644.xlsx - Sheet1.csv"
 CALECA_FILE = INPUT_DIR / "BRCA1/table3_Caleca_BRCA1_BRCA2_2019_PMID30696104.csv"
 GOU_FILE = INPUT_DIR / "BRCA1/table1_Guo_BRCA1_2023_PMID37731132.csv"
-FAYER_FILE = INPUT_DIR / "BRCA1/Fayer et al data.xlsx - Table_S1.csv"
+FAYER_FILE = INPUT_DIR / "BRCA1/Fayer et al data.xlsx - Table_S7.csv"
 BASSI_FILE = INPUT_DIR / "BRCA1/table1_BRCA1_Bassi_2023_PMID37085799.csv"
 LANGERUD_FILE = INPUT_DIR / "BRCA1/table2_BRCA1_Langerud_2018_PMID30458859.csv"
 LEE_FILE_1 = INPUT_DIR / "BRCA1/Extracted_Supplement_BRCA1_Lee_2010_PMID20516115.csv"
@@ -38,7 +39,7 @@ TARGET_COLUMNS = [
     "BRCA1_Findlay_auth_func_score", "BRCA1_Findlay_reported_functional_class", 
     "BRCA1_Adamovich_HDR_auth_func_score", "BRCA1_Adamovich_HDR_auth_reported_functional_class", 
     "BRCA1_Adamovich_Cisplatin_auth_func_score", "BRCA1_Adamovich_Cisplatin_auth_reported_functional_class", 
-    "BRCA1_Fernandes_PrDel", "BRCA1_Fernandes_fClass_Category",
+    "BRCA1_Fernandes_eta", "BRCA1_Fernandes_fClass_Category",
     "BRCA1_Bouwman_2013_RSE_mean", "BRCA1_Bouwman_2013_IC50_mean", "BRCA1_Bouwman_2013_Pval_mean", "BRCA1_Bouwman_2013_Classification",
     "BRCA1_Bouwman_2020_Cisplatin_nIC50b", "BRCA1_Bouwman_2020_Cisplatin_prediction", "BRCA1_Bouwman_2020_Olaparib_nIC50b", "BRCA1_Bouwman_2020_Olaparib_prediction", "BRCA1_Bouwman_2020_nGFP+b", "BRCA1_Bouwman_2020_DR-GFP_prediction",
     "BRCA1_Caleca_2019_BARD1_Binding", "BRCA1_Caleca_2019_UbCH5a_Binding",
@@ -154,54 +155,6 @@ def load_cravat(filepath):
 
     return df
 
-def load_generic_dataset(filepath, name, key_col=None, file_type='csv'):
-    """
-    Generic loader for datasets. 
-    Ideally, datasets should have a join_key. 
-    If not, we might need custom logic per dataset, but for now we assume they can be mapped.
-    """
-    print(f"Loading {name} from {filepath}...")
-    try:
-        if file_type == 'excel':
-            df = pd.read_excel(filepath)
-        elif file_type == 'tsv':
-            df = pd.read_csv(filepath, sep='\t')
-        else:
-            df = pd.read_csv(filepath, low_memory=False)
-            
-        # Basic cleaning
-        df.columns = df.columns.str.strip()
-        
-        # Try to infer join_key if not present
-        if 'join_key' not in df.columns:
-            # Check for standard AA columns
-            if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
-                 df['join_key'] = df.apply(
-                     lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
-                     if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
-                     axis=1
-                 )
-            # Check for HGVSp
-            elif 'HGVSp' in df.columns or 'hgvs_p' in df.columns:
-                col = 'HGVSp' if 'HGVSp' in df.columns else 'hgvs_p'
-                parsed = df[col].apply(parse_hgvsp)
-                df['join_key'] = parsed.apply(lambda x: x[3])
-            # Check for specialized columns often used in these datasets (e.g. 'Variant', 'mutant', etc)
-            elif 'Variant' in df.columns:
-                 # Assume simple format like V25A
-                 df['join_key'] = df['Variant'].astype(str).str.strip()
-                 
-        if 'join_key' in df.columns:
-             # Clean join key
-             df = df.dropna(subset=['join_key'])
-             if df.duplicated(subset=['join_key']).any():
-                df = df.drop_duplicates(subset=['join_key'])
-        
-        return df
-    except Exception as e:
-        print(f"Error loading {name}: {e}")
-        return pd.DataFrame()
-
 def load_pillar(filepath):
     """
     Loads Pillar data (similar to MSH2 logic).
@@ -246,56 +199,6 @@ def load_pillar(filepath):
         print(f"Error loading Pillar: {e}")
         return pd.DataFrame()
 
-def apply_functional_mappings(master_df, mapping_df, dataset_dfs, key_col="join_key"):
-    """
-    Applies mappings from the configuration sheet.
-    """
-    print("Applying functional assay mappings...")
-    for _, row in mapping_df.iterrows():
-        dataset = row["Found in this dataset"]
-        src_col = row["Mapped to "]
-        dest_col = row["Column Name"]
-
-        # Skip undecided mappings
-        if str(dataset) in ["?", "nan", ""] or str(src_col) in ["?", "nan", ""]:
-            continue
-
-        df = dataset_dfs.get(dataset)
-        
-        if df is None:
-            # print(f"Warning: Dataset '{dataset}' not found in loaded datasets.")
-            continue
-            
-        if src_col not in df.columns:
-            # print(f"Warning: Column '{src_col}' not found in dataset '{dataset}'.")
-            continue
-
-        print(f"  Mapping {dataset}.{src_col} -> {dest_col}")
-        
-        # Merge
-        # We merge only the specific column to avoid collisions
-        
-        # Ensure join_key exists
-        if key_col not in df.columns:
-            print(f"    Skipping {dataset}: '{key_col}' missing.")
-            continue
-            
-        temp_df = df[[key_col, src_col]].copy()
-        temp_df = temp_df.rename(columns={src_col: dest_col})
-        
-        # If dest_col already exists (e.g. from previous merge), we might want to update it?
-        # For now, standard merge.
-        if dest_col in master_df.columns:
-             # If it exists, we might be overwriting it or filling NaNs.
-             # Let's drop it from master first to ensure clean merge from source, 
-             # OR use combine_first if we expect partial data.
-             # Assuming mapping sheet defines the SINGLE source.
-             master_df = master_df.drop(columns=[dest_col])
-             
-        master_df = master_df.merge(temp_df, on=key_col, how='left')
-        
-    return master_df
-
 def main():
     print("Starting BRCA1 pipeline...")
     
@@ -321,23 +224,23 @@ def main():
     # Map dataset names from Mapping Sheet to File Paths/Loaders
     # Dataset names in sheet: "Findlay", "Adamovich_Hdr", "Adamovich_Cisplatin", etc.
     
-    findlay_df = load_generic_dataset(FINDLAY_FILE, "Findlay") # Likely needs specific loader if no join_key
-    adamovich_hdr_df = load_generic_dataset(ADAMOVICH_HDR_FILE, "Adamovich_Hdr")
-    adamovich_cisplatin_df = load_generic_dataset(ADAMOVICH_CISPLATIN_FILE, "Adamovich_Cisplatin")
-    fernandes_df = load_generic_dataset(FERNANDES_FILE, "Fernandes")
-    bouwman_2013_df = load_generic_dataset(BOUWMAN_2013_FILE, "Bouwman_2013")
-    bouwman_2020_df = load_generic_dataset(BOUWMAN_2020_FILE, "Bouwman_2020")
-    caleca_df = load_generic_dataset(CALECA_FILE, "Caleca_2019")
-    gou_df = load_generic_dataset(GOU_FILE, "Gou_2023")
-    fayer_df = load_generic_dataset(FAYER_FILE, "Fayer_2021")
-    bassi_df = load_generic_dataset(BASSI_FILE, "Bassi_2023")
-    langerud_df = load_generic_dataset(LANGERUD_FILE, "Langerud")
-    langerud_2018_df = load_generic_dataset(LANGERUD_FILE, "Langerud_2018") # Same file?
-    lee_2010_df_1 = load_generic_dataset(LEE_FILE_1, "Lee_2010_1")
-    lee_2010_df_2 = load_generic_dataset(LEE_FILE_2, "Lee_2010_2")
-    lee_2010_df_3 = load_generic_dataset(LEE_FILE_3, "Lee_2010_3")
-    starita_df = load_generic_dataset(STARITA_FILE, "Starita", file_type='tsv')
-    hart_2018_df = load_generic_dataset(HART_FILE, "Hart_2018")
+    findlay_df = load_generic_dataset(FINDLAY_FILE, "FINDLAY_FILE")
+    adamovich_hdr_df = load_generic_dataset(ADAMOVICH_HDR_FILE, "ADAMOVICH_HDR_FILE")
+    adamovich_cisplatin_df = load_generic_dataset(ADAMOVICH_CISPLATIN_FILE, "ADAMOVICH_CISPLATIN_FILE")
+    fernandes_df = load_generic_dataset(FERNANDES_FILE, "FERNANDES_FILE")
+    bouwman_2013_df = load_generic_dataset(BOUWMAN_2013_FILE, "BOUWMAN_2013_FILE")
+    bouwman_2020_df = load_generic_dataset(BOUWMAN_2020_FILE, "BOUWMAN_2020_FILE")
+    caleca_df = load_generic_dataset(CALECA_FILE, "CALECA_FILE")
+    gou_df = load_generic_dataset(GOU_FILE, "GOU_FILE")
+    fayer_df = load_generic_dataset(FAYER_FILE, "FAYER_FILE")
+    bassi_df = load_generic_dataset(BASSI_FILE, "BASSI_FILE")
+    langerud_df = load_generic_dataset(LANGERUD_FILE, "LANGERUD_FILE")
+
+    lee_2010_df_1 = load_generic_dataset(LEE_FILE_1, "LEE_FILE_1")
+    lee_2010_df_2 = load_generic_dataset(LEE_FILE_2, "LEE_FILE_2")
+    lee_2010_df_3 = load_generic_dataset(LEE_FILE_3, "LEE_FILE_3")
+    starita_df = load_generic_dataset(STARITA_FILE, "STARITA_FILE", file_type='tsv')
+    hart_2018_df = load_generic_dataset(HART_FILE, "HART_FILE")
 
     dataset_dfs = {
         "CRAVAT_FILE": cravat_df,
@@ -511,6 +414,23 @@ def main():
 
     print(f"Writing {len(variants_not_merged_enriched)} not-merged variants to {NOT_MERGED_FILE}...")
     variants_not_merged_enriched.to_csv(NOT_MERGED_FILE, index=False)
+
+    # Verification Logs
+    print("\n--- Dataset Loading Verification ---")
+    print(f"{'Dataset':<25} | {'Loaded':<8} | {'Overlap w/ Cravat':<18}")
+    print("-" * 55)
+    
+    # Check Pillar overlap
+    pillar_ov = cravat_df.join_key.isin(pillar_df.join_key).mean()
+    print(f"{'PILLAR_FILE':<25} | {len(pillar_df):<8} | {pillar_ov:.2%}")
+    
+    for name, df in dataset_dfs.items():
+        if name in ["CRAVAT_FILE", "PILLAR_FILE"]: continue
+        if 'join_key' in df.columns:
+            ov = cravat_df.join_key.isin(df.join_key).mean()
+            print(f"{name:<25} | {len(df):<8} | {ov:.2%}")
+        else:
+            print(f"{name:<25} | {len(df):<8} | N/A (no key)")
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import re
 from variant_helpers import parse_hgvsp
+from dataset_loader import load_generic_dataset, apply_functional_mappings
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
@@ -113,42 +114,6 @@ def load_cravat(filepath):
 
     return df
 
-def load_generic_dataset(filepath, name, key_col=None, file_type='csv'):
-    print(f"Loading {name} from {filepath}...")
-    try:
-        if file_type == 'excel':
-            df = pd.read_excel(filepath)
-        elif file_type == 'tsv':
-            df = pd.read_csv(filepath, sep='\t')
-        else:
-            df = pd.read_csv(filepath, low_memory=False)
-            
-        df.columns = df.columns.str.strip()
-        
-        if 'join_key' not in df.columns:
-            if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
-                 df['join_key'] = df.apply(
-                     lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
-                     if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
-                     axis=1
-                 )
-            elif 'HGVSp' in df.columns or 'hgvs_p' in df.columns:
-                col = 'HGVSp' if 'HGVSp' in df.columns else 'hgvs_p'
-                parsed = df[col].apply(parse_hgvsp)
-                df['join_key'] = parsed.apply(lambda x: x[3])
-            elif 'Variant' in df.columns:
-                 df['join_key'] = df['Variant'].astype(str).str.strip()
-                 
-        if 'join_key' in df.columns:
-             df = df.dropna(subset=['join_key'])
-             if df.duplicated(subset=['join_key']).any():
-                df = df.drop_duplicates(subset=['join_key'])
-        
-        return df
-    except Exception as e:
-        print(f"Error loading {name}: {e}")
-        return pd.DataFrame()
-
 def load_pillar(filepath):
     print(f"Loading Pillar file from {filepath}...")
     try:
@@ -188,41 +153,6 @@ def load_pillar(filepath):
         print(f"Error loading Pillar: {e}")
         return pd.DataFrame()
 
-def apply_functional_mappings(master_df, mapping_df, dataset_dfs, key_col="join_key"):
-    print("Applying functional assay mappings...")
-    for _, row in mapping_df.iterrows():
-        dataset = row["Found in this dataset"]
-        src_col = row["Mapped to "]
-        dest_col = row["Column Name"]
-
-        if str(dataset) in ["?", "nan", ""] or str(src_col) in ["?", "nan", ""]:
-            continue
-
-        df = dataset_dfs.get(dataset)
-        
-        if df is None:
-            continue
-            
-        if src_col not in df.columns:
-            continue
-
-        print(f"  Mapping {dataset}.{src_col} -> {dest_col}")
-        
-        # Ensure join_key exists
-        if key_col not in df.columns:
-            print(f"    Skipping {dataset}: '{key_col}' missing.")
-            continue
-            
-        temp_df = df[[key_col, src_col]].copy()
-        temp_df = temp_df.rename(columns={src_col: dest_col})
-        
-        if dest_col in master_df.columns:
-             master_df = master_df.drop(columns=[dest_col])
-             
-        master_df = master_df.merge(temp_df, on=key_col, how='left')
-        
-    return master_df
-
 def main():
     print("Starting VHL pipeline...")
     
@@ -238,7 +168,7 @@ def main():
     print(f"Cravat variants loaded: {len(cravat_df)}")
     pillar_df = load_pillar(PILLAR_FILE)
     
-    buckley_df = load_generic_dataset(BUCKLEY_FILE, "Buckley_2016")
+    buckley_df = load_generic_dataset(BUCKLEY_FILE, "BUCKLEY_FILE")
 
     dataset_dfs = {
         "CRAVAT_FILE": cravat_df,
@@ -378,6 +308,22 @@ def main():
 
     print(f"Writing {len(variants_not_merged_enriched)} not-merged variants to {NOT_MERGED_FILE}...")
     variants_not_merged_enriched.to_csv(NOT_MERGED_FILE, index=False)
+
+    # Verification Logs
+    print("\n--- Dataset Loading Verification ---")
+    print(f"{'Dataset':<25} | {'Loaded':<8} | {'Overlap w/ Cravat':<18}")
+    print("-" * 55)
+    
+    pillar_ov = cravat_df.join_key.isin(pillar_df.join_key).mean()
+    print(f"{'PILLAR_FILE':<25} | {len(pillar_df):<8} | {pillar_ov:.2%}")
+    
+    for name, df in dataset_dfs.items():
+        if name in ["CRAVAT_FILE", "PILLAR_FILE"]: continue
+        if 'join_key' in df.columns:
+            ov = cravat_df.join_key.isin(df.join_key).mean()
+            print(f"{name:<25} | {len(df):<8} | {ov:.2%}")
+        else:
+            print(f"{name:<25} | {len(df):<8} | N/A (no key)")
 
 if __name__ == "__main__":
     main()
