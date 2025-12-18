@@ -13,7 +13,6 @@ MAPPING_FILE = INPUT_DIR / "Functional Assay Mapping - Sheet1.csv"
 # File paths
 CRAVAT_FILE = INPUT_DIR / "PTEN/PTEN_annotated.csv.gz"
 PILLAR_FILE = INPUT_DIR / "PTEN/PTEN_pillar_data.csv.gz"
-FAYER_FILE = INPUT_DIR / "PTEN/Fayer et al data.xlsx - Table_S12.csv"
 MAVE_FILE = INPUT_DIR / "MAVE Curation v3.csv"
 
 # Target columns
@@ -21,7 +20,6 @@ TARGET_COLUMNS = [
     "Gene", "HGNC ID", "Ensembl_transcript_ID", "Ref_seq_transcript_ID", "HGVSc.", "HGVSp.", "Chrom", 
     "hg38_start", "hg38_end", "ref_allele", "alt_allele", 
     "aa_pos", "aa_ref", "aa_alt", 
-    "PTEN_Fayer_2021_Activity_score", "PTEN_Fayer_2021_Activity_class", "PTEN_Fayer_2021_Abundance_score", "PTEN_Fayer_2021_Abundance_class",
     "PTEN_Matreyek_2018_func_score",
     "PTEN_Mighell_2018_func_score",
     "gnomad_MAF", 
@@ -180,31 +178,15 @@ def main():
     pillar_usecols = list(pillar_base_cols.union(pillar_extra_cols))
     pillar_df = load_pillar(PILLAR_FILE, usecols=pillar_usecols)
     
-    # Load Fayer using generic loader
-    fayer_df = load_generic_dataset(FAYER_FILE, "FAYER_FILE", header=1)
-    # Fix specific typo in Fayer data
-    if 'Abudance_class' in fayer_df.columns:
-        fayer_df['Abundance_class'] = fayer_df['Abudance_class']
 
     dataset_dfs = {
         "CRAVAT_FILE": cravat_df,
         "PILLAR_FILE": pillar_df,
-        "FAYER_FILE": fayer_df
     }
 
     master_df = cravat_df.copy()
     master_df = master_df.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
-    
-    # Fix typo from mapping sheet if present (Cleanup step)
-    if 'PTEN_Fayer_2021_Abudance_class' in master_df.columns:
-        # If the mapping sheet generated the typo column, rename it to the correct one
-        if 'PTEN_Fayer_2021_Abundance_class' not in master_df.columns:
-             master_df.rename(columns={'PTEN_Fayer_2021_Abudance_class': 'PTEN_Fayer_2021_Abundance_class'}, inplace=True)
-        else:
-             # Both exist? Copy data if needed and drop typo
-             master_df['PTEN_Fayer_2021_Abundance_class'] = master_df['PTEN_Fayer_2021_Abundance_class'].fillna(master_df['PTEN_Fayer_2021_Abudance_class'])
-             master_df.drop(columns=['PTEN_Fayer_2021_Abudance_class'], inplace=True)
 
     master_df['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:9588')
     
