@@ -4,6 +4,7 @@ import numpy as np
 import re
 from variant_helpers import parse_hgvsp
 from dataset_loader import load_generic_dataset, apply_functional_mappings
+from mave_helpers import add_mave_intervals
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
@@ -24,9 +25,6 @@ TARGET_COLUMNS = [
     "VHL_Buckley_2016_function_score", 
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
-    "Interval 1 name", "Interval 1 range", "Interval 1 MaveDB class", 
-    "Interval 2 name", "Interval 2 range", "Interval 2 MaveDB class", 
-    "Interval 3 name", "Interval 3 range", "Interval 3 MaveDB class", 
     "spliceAI_DS_AG", "spliceAI_DS_AL", "spliceAI_DS_DG", "spliceAI_DS_DL"
 ]
 
@@ -192,11 +190,47 @@ def main():
     else:
         master_df['Ref_seq_transcript_ID'] = master_df['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
 
-    for i in range(1, 4):
-        master_df[f'Interval {i} name'] = mave_meta.get(f'Interval {i} name', np.nan)
-        master_df[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
-        master_df[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
-        
+    # Attach dataset-specific MAVE interval columns and drop legacy generic ones
+    master_df = add_mave_intervals(master_df, MAVE_FILE, "VHL")
+
+    # Drop metadata columns that appear after join_key
+    drop_after_join_key = [
+        "ID", "Dataset", "HGNC_id", "STRAND", "hg19_pos",
+        "auth_transcript_id", "transcript_pos", "transcript_ref", "transcript_alt",
+        "hgvs_c", "hgvs_p", "consequence", "simplified_consequence",
+        "auth_reported_score", "auth_reported_rep_score", "auth_reported_func_class",
+        "splice_measure", "nucleotide_or_aa",
+        "MaveDB Score Set URN", "Model_system", "Assay Type",
+        "Phenotype Measured ontology term",
+        "Molecular or Biological Process Investigated (GO term)",
+        "IGVF_produced", "Flag",
+        "REVEL", "AM_score", "AM_class",
+        "spliceAI_DP_AG", "spliceAI_DP_AL", "spliceAI_DP_DG", "spliceAI_DP_DL",
+        "REVEL_train", "MutPred2", "MP2_train",
+        "clinvar_sig_2018", "clinvar_star_2018", "clinvar_date_last_reviewed_2018",
+        "ClinVar Variation Id_ClinGen_repo", "Allele Registry Id_ClinGen_repo",
+        "Disease_ClinGen_repo", "Mondo Id_ClinGen_repo",
+        "Mode of Inheritance_ClinGen_repo", "Assertion_ClinGen_repo",
+        "Applied Evidence Codes (Met)_ClinGen_repo",
+        "Applied Evidence Codes (Not Met)_ClinGen_repo",
+        "Summary of interpretation_ClinGen_repo", "PubMed Articles_ClinGen_repo",
+        "Expert Panel_ClinGen_repo", "Guideline_ClinGen_repo",
+        "Approval Date_ClinGen_repo", "Published Date_ClinGen_repo",
+        "Retracted_ClinGen_repo", "Evidence Repo Link_ClinGen_repo",
+        "Uuid_ClinGen_repo", "Updated_Classification_ClinGen_repo",
+        "Updated_Evidence Codes_ClinGen_repo"
+    ]
+    
+    if "join_key" in master_df.columns:
+        join_idx = list(master_df.columns).index("join_key")
+        cols_to_drop = [
+            c for c in drop_after_join_key
+            if c in master_df.columns and list(master_df.columns).index(c) > join_idx
+        ]
+        if cols_to_drop:
+            master_df = master_df.drop(columns=cols_to_drop)
+            print(f"  Dropped {len(cols_to_drop)} metadata columns appearing after 'join_key': {cols_to_drop[:5]}{'...' if len(cols_to_drop) > 5 else ''}")
+
     for col in TARGET_COLUMNS:
         if col not in master_df.columns:
             master_df[col] = np.nan
@@ -205,6 +239,29 @@ def main():
     final_cols = TARGET_COLUMNS + other_cols
     
     final_df = master_df[final_cols]
+    
+    # Reorder columns: Interval columns immediately after clinvar_date_last_reviewed_2025
+    anchor = "clinvar_date_last_reviewed_2025"
+    interval_cols = [c for c in final_df.columns if c.startswith("Interval ")]
+    
+    def _interval_sort_key(col):
+        parts = col.split()
+        i = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 99
+        field = parts[2] if len(parts) > 2 else ""
+        dataset = " ".join(parts[3:]) if len(parts) > 3 else ""
+        field_order = {"name": 0, "range": 1, "MaveDB": 2}
+        return (i, field_order.get(field, 9), dataset)
+    
+    interval_cols = sorted(interval_cols, key=_interval_sort_key)
+    cols = list(final_df.columns)
+    
+    if anchor not in cols:
+        raise KeyError(f"{anchor} not found in dataframe columns")
+    
+    cols_no_intervals = [c for c in cols if c not in interval_cols]
+    anchor_idx = cols_no_intervals.index(anchor) + 1
+    new_cols = cols_no_intervals[:anchor_idx] + interval_cols + cols_no_intervals[anchor_idx:]
+    final_df = final_df[new_cols]
     
     print(f"Writing {len(final_df)} rows to {OUTPUT_FILE}...")
     final_df.to_csv(OUTPUT_FILE, index=False)
@@ -275,10 +332,8 @@ def main():
         unmerged_full['Ref_seq_transcript_ID'] = np.nan
     unmerged_full['Ref_seq_transcript_ID'] = unmerged_full['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
 
-    for i in range(1, 4):
-        unmerged_full[f'Interval {i} name'] = mave_meta.get(f'Interval {i} name', np.nan)
-        unmerged_full[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
-        unmerged_full[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
+    # Attach dataset-specific MAVE interval columns and drop legacy generic ones
+    unmerged_full = add_mave_intervals(unmerged_full, MAVE_FILE, "VHL")
 
     def parse_key_to_aa(key):
         match = re.match(r'^([A-Z])(\d+)([A-Z\*])$', str(key))

@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import re
 from variant_helpers import parse_hgvsp
+from mave_helpers import add_mave_intervals
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
@@ -32,9 +33,6 @@ TARGET_COLUMNS = [
     "TP53_Giacomelli_func_score", "TP53_Giacomelli_func_class", 
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
-    "Interval 1 name", "Interval 1 range", "Interval 1 MaveDB class", 
-    "Interval 2 name", "Interval 2 range", "Interval 2 MaveDB class", 
-    "Interval 3 name", "Interval 3 range", "Interval 3 MaveDB class", 
     "spliceAI_DS_AG", "spliceAI_DS_AL", "spliceAI_DS_DG", "spliceAI_DS_DL"
 ]
 
@@ -123,24 +121,50 @@ def load_cravat(filepath):
     return df
 
 
+def normalize_pillar_date_column(df):
+    """
+    Helper function to normalize Pillar ClinVar date column names to clinvar_date_last_reviewed_2025.
+    Checks for common alternate column names and renames if found.
+    """
+    alternate_names = [
+        'clinvar_date_last_reviewed_2025',
+        'clinvar_date_last_reviewed',
+        'clinvar.date_last_reviewed',
+        'clinvar_date_last_reviewed_2024',
+        'clinvar_date_last_reviewed_2023'
+    ]
+    
+    for alt_name in alternate_names:
+        if alt_name in df.columns:
+            if alt_name != 'clinvar_date_last_reviewed_2025':
+                df = df.rename(columns={alt_name: 'clinvar_date_last_reviewed_2025'})
+                print(f"  Renamed Pillar column '{alt_name}' to 'clinvar_date_last_reviewed_2025'")
+            break
+    
+    return df
+
 def load_pillar(filepath):
+    """
+    Loads Pillar data for functional mappings and clinvar_date_last_reviewed_2025.
+    Note: clinvar_sig_2025 and clinvar_star_2025 come from CRAVAT, but 
+    clinvar_date_last_reviewed_2025 comes from Pillar.
+    """
     print(f"Loading Pillar file from {filepath}...")
     try:
-        usecols = ['hgvs_p', 'aa_pos', 'aa_ref', 'aa_alt', 'clinvar_star_2025']
+        # Load all columns first to check for alternate date column names
+        # pandas auto-detects .gz compression
         df = pd.read_csv(filepath, low_memory=False)
         
-        def map_stars_pillar(status):
-            if pd.isna(status): return np.nan
-            status = str(status).lower()
-            if 'practice guideline' in status: return 4
-            if 'expert panel' in status: return 3
-            if 'multiple submitters' in status and 'conflicts' not in status: return 2
-            if 'single submitter' in status or 'conflicting' in status: return 1
-            if 'no assertion' in status: return 0
-            return 0 
-
-        if 'clinvar_star_2025' in df.columns:
-            df['clinvar_star_2025'] = df['clinvar_star_2025'].apply(map_stars_pillar)
+        # Normalize date column name
+        df = normalize_pillar_date_column(df)
+        
+        # Now select only needed columns (after normalization)
+        usecols = ['hgvs_p', 'aa_pos', 'aa_ref', 'aa_alt']
+        if 'clinvar_date_last_reviewed_2025' in df.columns:
+            usecols.append('clinvar_date_last_reviewed_2025')
+        
+        # Select only the columns we need
+        df = df[[c for c in usecols if c in df.columns]]
 
         if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(df.columns):
              df['join_key'] = df.apply(
@@ -156,7 +180,8 @@ def load_pillar(filepath):
             df = df.dropna(subset=['join_key'])
             if df.duplicated(subset=['join_key']).any():
                 df = df.drop_duplicates(subset=['join_key'])
-                
+        
+        print(f"  Pillar columns returned: {list(df.columns)}")
         return df
     except Exception as e:
         print(f"Error loading Pillar: {e}")
@@ -429,7 +454,32 @@ def main():
     }
 
     master_df = cravat_df.copy()
+    # Merge Pillar (for functional mappings and clinvar_date_last_reviewed_2025)
+    # Note: clinvar_sig_2025 and clinvar_star_2025 come from CRAVAT, but clinvar_date_last_reviewed_2025 comes from Pillar
     master_df = master_df.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+    
+    # Debug: Print counts before merge update
+    cravat_count = master_df['clinvar_date_last_reviewed_2025'].notna().sum() if 'clinvar_date_last_reviewed_2025' in master_df.columns else 0
+    pillar_count = master_df['clinvar_date_last_reviewed_2025_pillar'].notna().sum() if 'clinvar_date_last_reviewed_2025_pillar' in master_df.columns else 0
+    
+    # Update clinvar_date_last_reviewed_2025 from Pillar if available (only fill nulls, don't overwrite non-null)
+    if 'clinvar_date_last_reviewed_2025_pillar' in master_df.columns:
+        # Prefer CRAVAT if present, otherwise use Pillar
+        if 'clinvar_date_last_reviewed_2025' not in master_df.columns:
+            master_df['clinvar_date_last_reviewed_2025'] = master_df['clinvar_date_last_reviewed_2025_pillar']
+        else:
+            # Only fill where CRAVAT value is null
+            master_df['clinvar_date_last_reviewed_2025'] = master_df['clinvar_date_last_reviewed_2025'].fillna(master_df['clinvar_date_last_reviewed_2025_pillar'])
+        master_df = master_df.drop(columns=['clinvar_date_last_reviewed_2025_pillar'])
+    
+    # Debug: Print counts after merge update
+    merged_count = master_df['clinvar_date_last_reviewed_2025'].notna().sum() if 'clinvar_date_last_reviewed_2025' in master_df.columns else 0
+    print(f"  clinvar_date_last_reviewed_2025 counts - CRAVAT: {cravat_count}, Pillar: {pillar_count}, Final merged: {merged_count}")
+    
+    # Drop other ClinVar columns from Pillar (clinvar_sig and clinvar_star should come from CRAVAT only)
+    clinvar_pillar_cols = [c for c in master_df.columns if c.endswith('_pillar') and any(x in c for x in ['clinvar_sig', 'clinvar_star'])]
+    if clinvar_pillar_cols:
+        master_df = master_df.drop(columns=clinvar_pillar_cols)
     
     # Explicit merges for refactored datasets
     print("Merging functional datasets...")
@@ -462,10 +512,46 @@ def main():
     else:
         master_df['Ref_seq_transcript_ID'] = master_df['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
 
-    for i in range(1, 4):
-        master_df[f'Interval {i} name'] = mave_meta.get(f'Interval {i} name', np.nan)
-        master_df[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
-        master_df[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
+    # Attach dataset-specific MAVE interval columns and drop legacy generic ones
+    master_df = add_mave_intervals(master_df, MAVE_FILE, "TP53")
+
+    # Drop metadata columns that appear after join_key
+    drop_after_join_key = [
+        "ID", "Dataset", "HGNC_id", "STRAND", "hg19_pos",
+        "auth_transcript_id", "transcript_pos", "transcript_ref", "transcript_alt",
+        "hgvs_c", "hgvs_p", "consequence", "simplified_consequence",
+        "auth_reported_score", "auth_reported_rep_score", "auth_reported_func_class",
+        "splice_measure", "nucleotide_or_aa",
+        "MaveDB Score Set URN", "Model_system", "Assay Type",
+        "Phenotype Measured ontology term",
+        "Molecular or Biological Process Investigated (GO term)",
+        "IGVF_produced", "Flag",
+        "REVEL", "AM_score", "AM_class",
+        "spliceAI_DP_AG", "spliceAI_DP_AL", "spliceAI_DP_DG", "spliceAI_DP_DL",
+        "REVEL_train", "MutPred2", "MP2_train",
+        "clinvar_sig_2018", "clinvar_star_2018", "clinvar_date_last_reviewed_2018",
+        "ClinVar Variation Id_ClinGen_repo", "Allele Registry Id_ClinGen_repo",
+        "Disease_ClinGen_repo", "Mondo Id_ClinGen_repo",
+        "Mode of Inheritance_ClinGen_repo", "Assertion_ClinGen_repo",
+        "Applied Evidence Codes (Met)_ClinGen_repo",
+        "Applied Evidence Codes (Not Met)_ClinGen_repo",
+        "Summary of interpretation_ClinGen_repo", "PubMed Articles_ClinGen_repo",
+        "Expert Panel_ClinGen_repo", "Guideline_ClinGen_repo",
+        "Approval Date_ClinGen_repo", "Published Date_ClinGen_repo",
+        "Retracted_ClinGen_repo", "Evidence Repo Link_ClinGen_repo",
+        "Uuid_ClinGen_repo", "Updated_Classification_ClinGen_repo",
+        "Updated_Evidence Codes_ClinGen_repo"
+    ]
+    
+    if "join_key" in master_df.columns:
+        join_idx = list(master_df.columns).index("join_key")
+        cols_to_drop = [
+            c for c in drop_after_join_key
+            if c in master_df.columns and list(master_df.columns).index(c) > join_idx
+        ]
+        if cols_to_drop:
+            master_df = master_df.drop(columns=cols_to_drop)
+            print(f"  Dropped {len(cols_to_drop)} metadata columns appearing after 'join_key': {cols_to_drop[:5]}{'...' if len(cols_to_drop) > 5 else ''}")
         
     for col in TARGET_COLUMNS:
         if col not in master_df.columns:
@@ -475,6 +561,29 @@ def main():
     final_cols = TARGET_COLUMNS + other_cols
     
     final_df = master_df[final_cols]
+    
+    # Reorder columns: Interval columns immediately after clinvar_date_last_reviewed_2025
+    anchor = "clinvar_date_last_reviewed_2025"
+    interval_cols = [c for c in final_df.columns if c.startswith("Interval ")]
+    
+    def _interval_sort_key(col):
+        parts = col.split()
+        i = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 99
+        field = parts[2] if len(parts) > 2 else ""
+        dataset = " ".join(parts[3:]) if len(parts) > 3 else ""
+        field_order = {"name": 0, "range": 1, "MaveDB": 2}
+        return (i, field_order.get(field, 9), dataset)
+    
+    interval_cols = sorted(interval_cols, key=_interval_sort_key)
+    cols = list(final_df.columns)
+    
+    if anchor not in cols:
+        raise KeyError(f"{anchor} not found in dataframe columns")
+    
+    cols_no_intervals = [c for c in cols if c not in interval_cols]
+    anchor_idx = cols_no_intervals.index(anchor) + 1
+    new_cols = cols_no_intervals[:anchor_idx] + interval_cols + cols_no_intervals[anchor_idx:]
+    final_df = final_df[new_cols]
     
     print(f"Writing {len(final_df)} rows to {OUTPUT_FILE}...")
     final_df.to_csv(OUTPUT_FILE, index=False)
@@ -545,10 +654,8 @@ def main():
         unmerged_full['Ref_seq_transcript_ID'] = np.nan
     unmerged_full['Ref_seq_transcript_ID'] = unmerged_full['Ref_seq_transcript_ID'].fillna(mave_meta.get('Ref_seq_transcript_ID', np.nan))
 
-    for i in range(1, 4):
-        unmerged_full[f'Interval {i} name'] = mave_meta.get(f'Interval {i} name', np.nan)
-        unmerged_full[f'Interval {i} range'] = mave_meta.get(f'Interval {i} range', np.nan)
-        unmerged_full[f'Interval {i} MaveDB class'] = mave_meta.get(f'Interval {i} MaveDB class', np.nan)
+    # Attach dataset-specific MAVE interval columns and drop legacy generic ones
+    unmerged_full = add_mave_intervals(unmerged_full, MAVE_FILE, "TP53")
 
     def parse_key_to_aa(key):
         match = re.match(r'^([A-Z])(\d+)([A-Z\*])$', str(key))
