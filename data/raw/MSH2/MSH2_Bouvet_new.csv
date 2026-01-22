@@ -1,0 +1,46 @@
+Protein,DNA,InSiGHT Classification,French Classification,Tumor and age (years),MSI,IHC and/or other somatic data,Amsterdam or Bethesda criteria,Cancer and age (years) in relatives,Allele frequency (%),CADD score,Previous functional tests,MT assay result
+A2T,4G>A,3,1,LS spectrum cancer < 50,/,/,Amsterdam I,/,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,/,/,MSH2-,Bethesda,6 families ; 1 family: pathogenic MSH2 mutation c.1835C>G in cis,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,CRC 39,YES,MSH2-,Bethesda,Brother: CRC 46 sister: EC 47; sister: CRC 68; father: liver cancer 52; uncle: CRC 30; niece: CRC 45; niece: EC 50; nephew: CRC 37; cousin: CRC 60; cousin: GC 31; great-cousin: CRC brain tumor 18; cousin: CRC 42 47; segregation with the disease in the family (at least over 10 meiosis),0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,Cancer 28,/,MSH2- MSH2 methylation germline EPCAM mutation WT KRAS WT BRAF,/,/,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,Cancer 45,/,MSH2- MSH2 methylation germline EPCAM mutation WT KRAS WT BRAF,/,/,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,CRC 50,YES,MSH2-,/,/,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,/,YES,MSH2-,/,/,0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,/,YES,MSH2-,/,3 families EPCAM deletion (last exon in cis),0.039,32,/,22.63% Neutral
+A2T,4G>A,3,1,/,NO,MSH2+,/,2 families,0.039,32,/,22.63% Neutral
+T33P,97A>C,3,3,EC 45,YES,MLH1+ MSH2+ MSH6+,Bethesda,/,0.0064,33,decreased repair activity in vitro proficient mismatch binding and reduced ATP-dependent release intact MSH6 interaction MSH2 expression similar to WT,21.11% Neutral
+Y43C,128A>G,3,3,Synchronous CRC 50,NO,MLH1+ MSH2+ MSH6-,/,father: CRC 50; sister: CRC 50; sister: CCR 52; daughter: EC 39,0.0028,33,/,15.53% Neutral
+Y43C,128A>G,3,3,CRC 49,/,/,/,mother: CRC 73,0.0028,33,/,15.53% Neutral
+Y43C,128A>G,3,3,GC 65,/,/,/,sister: ovary 65; sister: EC sarcoma 64; father and mother: brain tumor,0.0028,33,/,15.53% Neutral
+M152T,455T>C,/,3,Spo EC < 50,NO,MLH1+ MSH2+ MSH6+ PMS2+,/,/,16.7,/,10.26% Neutral
+R243Q,728G>A,3,3,Spo CRC <50,NO,MSH2-MSH6-,/,/,0.0017,33,/,23.56% Neutral
+A305T,913G>A,3,3,CRC < 50,NO,/,Amsterdam I,/,0.005,32,53% repair activity in vitro ; proficient mismatch binding & ATP-dependent release; 2.2-fold induction of mutation rate in bacteria; nuclear localization in MEF; intact EXO1 interaction; expression similar to WT,30.54% Neutral
+A305T,913G>A,3,3,/,NO,MSH2+,/,/,0.005,32,53% repair activity in vitro ; proficient mismatch binding & ATP-dependent release; 2.2-fold induction of mutation rate in bacteria; nuclear localization in MEF; intact EXO1 interaction; expression similar to WT,30.54% Neutral
+A305T,913G>A,3,3,CRC 47,YES,MLH1- PMS2-,/,brother: GC 41,0.005,32,53% repair activity in vitro ; proficient mismatch binding & ATP-dependent release; 2.2-fold induction of mutation rate in bacteria; nuclear localization in MEF; intact EXO1 interaction; expression similar to WT,30.54% Neutral
+V342I,1024G>A,3,3,CRC < 40,YES,MLH1+ MSH2-,Amsterdam I,/,/,22.3,/,24.08% Neutral
+V342I,1024G>A,3,3,/,/,/,/,3 recurrent CRC families,/,22.3,/,24.08% Neutral
+P349A,1045C>G,3,3,Spo renal cell carcinoma 63,/,/,/,/,0.009,25,/,31.54% Neutral
+P349A,1045C>G,3,3,CRC 37,YES,/,/,/,0.009,25,/,31.54% Neutral
+P349A,1045C>G,3,3,/,/,MSH2+ MSH6+/-,Amsterdam II,daughter (not tested) : MSH2-MSH6-,0.009,25,/,31.54% Neutral
+P349A,1045C>G,3,3,/,/,/,Amsterdam I,/,0.009,25,/,31.54% Neutral
+P349A,1045C>G,3,3,BC 38 CRC,/,/,/,/,0.009,25,/,31.54% Neutral
+P349A,1045C>G,3,3,/,YES,MLH1+ MSH2-MSH6- PMS2+,/,/,0.009,25,/,31.54% Neutral
+V470E,1409T>A,3,3,CRC 40,YES,MLH1+ MSH2+MSH6+ PMS2+,/,pat grand-mother: CRC 50; pat grand-father: CRC 57; 2 2nd degree relatives LS tumors < 50,/,26.5,/,79.63% Damaging
+V470E,1409T>A,3,3,/,/,MLH1+ MSH2+,Amsterdam II,/,/,26.5,/,79.63% Damaging
+V470E,1409T>A,3,3,EC 46 CRC 58,YES,MLH1+ MSH2+ MSH6+ PMS2+,No Amsterdam,Variant carrier brother: CRC 40 51 GC 51; sister: CRC 38 EC; sister: CRC 30 ovary 32; pat grand-father: CRC 55; half-sister (same father): BC 63 ad; half-sister's son: ad,/,26.5,/,79.63% Damaging
+A500P,1498G>C,/,3,UC 68 CRC 74,YES,MLH1+ MSH2+MSH6+ PMS2+ No MLH1 methylation WT BRAF,No Amsterdam,no,/,32,/,66.01% Damaging
+G548C,1642G>T,3,3,/,/,/,/,/,/,34,/,29.82% Neutral
+E561K,1681G>A,3,3,/,/,/,/,/,0.0017,24.5,/,8.70% Neutral
+N583S,1748A>G,3,3,CRC 35,/,/,/,/,0.01,22.9,/,12.65% Neutral
+N583S,1748A>G,3,3,CRC <50,/,/,Amsterdam I,/,0.01,22.9,/,12.65% Neutral
+L602P,1805T>C,/,3,CRC 38,YES,/,Amsterdam,brother: CRC 40; father: UC 57 58 60 lymphoma,/,26.2,/,78.64% Damaging
+H610N,1828C>A,3,3,/,/,/,/,/,/,21.5,/,18.20% Neutral
+P622T,1864C>A,3,/,CRC 23,YES,/,Amsterdam I,/,/,24.9,/,71.03% Damaging
+P622T,1864C>A,3,/,Ad 40 CRC 51 HGD Ad 52,YES,MSH2- MSH6-,No Amsterdam,father: CRC 55; mother: EC 45 CRC 55,/,24.9,/,71.03% Damaging
+K627N,1881A>C,3,3,/,/,/,/,/,/,24.6,/,20.71% Neutral
+R638G,1912A>G,3,3,CRC 44,YES,MSH2-,/,/,/,28,/,59.66% Damaging
+N671Y,2011A>T,3,3,CRC 42,/,/,Bethesda,/,/,32,/,67.36% Damaging
+R711Q,2132G>A,/,3,/,YES,MLH1+ MSH2+,Amsterdam,/,0.00082,30,/,53.08% Potentially damaging
+L736P,2207T>C,/,3*,Sebaceoma 66,YES,MSH6-,No Amsterdam,No family history,/,33,/,55.58% Potentially damaging
+Y856C,2567A>G,3,3,/,/,/,Amsterdam,/,0.00082,22.7,/,21.46% Neutral
+T905I,2714C>T,3,3,/,/,/,/,multiple late-onset LS cancers in the family,0.0076,14.6,/,20.99% Neutral

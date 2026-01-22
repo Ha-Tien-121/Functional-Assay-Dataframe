@@ -1,0 +1,11 @@
+# Core dependencies
+pandas>=1.5.0
+numpy>=1.21.0
+
+# File format support
+openpyxl>=3.0.0     # Excel files (.xlsx)
+pyarrow>=10.0.0     # Parquet files
+
+# Optional but recommended
+tqdm>=4.64.0        # Progress bars
+
