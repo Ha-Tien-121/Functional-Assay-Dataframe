@@ -1,0 +1,9 @@
+assay_column,std_column,nP,nB,n_abn_P,n_abn_B,n_norm_P,n_norm_B,n_indeterminate,LR_plus,LR_minus,evidence_strength_path,evidence_strength_benign,sensitivity,specificity,precision,npv,indeterminate_rate
+BRCA1_Findlay_reported_functional_class,BRCA1_Findlay_reported_functional_class__std,285,1,285,1,0,0,0,1.331002331002331,0.006993006993006993,Indeterminate,Benign Strong,1.0,0.0,0.9965034965034965,,0.0
+BRCA1_Adamovich_HDR_auth_reported_functional_class,BRCA1_Adamovich_HDR_auth_reported_functional_class__std,285,1,285,1,0,0,0,1.331002331002331,0.006993006993006993,Indeterminate,Benign Strong,1.0,0.0,0.9965034965034965,,0.0
+BRCA1_Adamovich_Cisplatin_auth_reported_functional_class,BRCA1_Adamovich_Cisplatin_auth_reported_functional_class__std,285,1,285,1,0,0,0,1.331002331002331,0.006993006993006993,Indeterminate,Benign Strong,1.0,0.0,0.9965034965034965,,0.0
+BRCA1_Bassi_2023_Results_in_functional_assays_this_study,BRCA1_Bassi_2023_Results_in_functional_assays_this_study__std,0,0,0,0,0,0,0,1.0,1.0,Indeterminate,Indeterminate,,,,,
+BRCA1_Lee_2010_Functional_Effect,BRCA1_Lee_2010_Functional_Effect__std,62,18,0,0,51,16,13,0.30158730158730157,0.9413179413179412,Indeterminate,Indeterminate,0.0,1.0,,0.23880597014925373,0.1625
+BRCA1_Hart_2018_Functional_score,BRCA1_Hart_2018_Functional_score__std,0,0,0,0,0,0,0,1.0,1.0,Indeterminate,Indeterminate,,,,,
+BRCA1_Hart_2018_Functional_classification,BRCA1_Hart_2018_Functional_classification__std,73,44,57,0,11,44,5,69.93243243243242,0.15715153355602793,Pathogenic Strong,Benign Moderate,0.8382352941176471,1.0,1.0,0.8,0.042735042735042736
+alphamissense.am_class,alphamissense.am_class__std,187,42,180,15,0,0,34,2.663520933424846,0.22872340425531915,Pathogenic Supporting,Benign Moderate,1.0,0.0,0.9230769230769231,,0.14847161572052403

@@ -4,6 +4,7 @@ import numpy as np
 import re
 from variant_helpers import parse_hgvsp
 from mave_helpers import add_mave_intervals
+from splice_utils import compute_spliceai_max, get_spliceai_exclusion_mask, null_out_assay_for_splice
 
 # Configuration
 INPUT_DIR = pathlib.Path(".")
@@ -25,6 +26,7 @@ TARGET_COLUMNS = [
     "MSH2 Jia auth_func_score", "Jia_auth_reported_functional_class", 
     "MSH2_Ollodart_auth_func_score", "Ollodart_auth_reported_functional_class", 
     "MSH2_Bouvet_auth_func_score", "Bouvet_auth_reported_functional_class", 
+    "PP_auth_reported_rep_score",
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
     "spliceAI_DS_AG", "spliceAI_DS_AL", "spliceAI_DS_DG", "spliceAI_DS_DL"
@@ -301,6 +303,16 @@ def load_pillar(filepath):
         print(f"Error loading Pillar: {e}")
         return pd.DataFrame(columns=['join_key'])
 
+ALLOWLIST_DATASETS = {
+    "FINDLAY_FILE",
+    "HUANG_FILE",
+    "SAHU_2023_FILE",
+    "SAHU_2025_FILE",
+    "FUNK_FILE",
+    "BUCKLEY_FILE",
+}
+
+
 def main():
     print("Starting pipeline...")
     
@@ -309,7 +321,11 @@ def main():
     
     # 2. Load Cravat (Backbone) - NOW INCLUDING ALL COLUMNS
     cravat_df = load_cravat(CRAVAT_FILE)
+    cravat_df["spliceai_max"] = compute_spliceai_max(cravat_df)
+    splice_mask = get_spliceai_exclusion_mask(cravat_df)
+    exclude_keys = set(cravat_df.loc[splice_mask, "join_key"].dropna())
     print(f"Cravat variants loaded: {len(cravat_df)}")
+    print(f"Variants with spliceai_max > 0.2: {len(exclude_keys)}")
     
     # 2b. Load Pillar for ClinVar and Transcript updates
     pillar_df = load_pillar(PILLAR_FILE)
@@ -345,7 +361,31 @@ def main():
     # Merge Pillar data (for functional mappings and clinvar_date_last_reviewed_2025)
     # Note: clinvar_sig_2025 and clinvar_star_2025 come from CRAVAT, but clinvar_date_last_reviewed_2025 comes from Pillar
     merged = merged.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+    merged = merged.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+
+    rep_col = None
+    if 'auth_reported_rep_score_pillar' in merged.columns:
+        rep_col = 'auth_reported_rep_score_pillar'
+    elif 'auth_reported_rep_score' in merged.columns:
+        rep_col = 'auth_reported_rep_score'
+    merged['PP_auth_reported_rep_score'] = merged[rep_col] if rep_col else np.nan
+    rep_non_null = merged['PP_auth_reported_rep_score'].notna().sum()
+    print(f"  PP_auth_reported_rep_score non-null after Pillar merge: {rep_non_null}")
     
+    # Apply splice exclusion per assay (allowlist bypassed)
+    dataset_dfs = {
+        "PILLAR_FILE": pillar_df,
+        "JIA_FILE": jia_df,
+        "OLLODART_FILE": ollodart_df,
+        "BOUVET_FILE": bouvet_df,
+    }
+    for name, df in dataset_dfs.items():
+        if name in ALLOWLIST_DATASETS:
+            continue  # allowlisted assays bypass splice filtering
+        nulled = null_out_assay_for_splice(df, exclude_keys)
+        if nulled:
+            print(f"  SpliceAI filter nulled {nulled} rows for {name}")
+
     # Debug: Print counts before merge update
     cravat_count = merged['clinvar_date_last_reviewed_2025'].notna().sum() if 'clinvar_date_last_reviewed_2025' in merged.columns else 0
     pillar_count = merged['clinvar_date_last_reviewed_2025_pillar'].notna().sum() if 'clinvar_date_last_reviewed_2025_pillar' in merged.columns else 0

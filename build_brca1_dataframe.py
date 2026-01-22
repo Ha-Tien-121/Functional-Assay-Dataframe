@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import re
 from variant_helpers import parse_hgvsp
+from splice_utils import compute_spliceai_max, get_spliceai_exclusion_mask, null_out_assay_for_splice
 from dataset_loader import load_generic_dataset, apply_functional_mappings
 from mave_helpers import add_mave_intervals
 
@@ -51,6 +52,7 @@ TARGET_COLUMNS = [
     "BRCA1_Lee_2010_Structural_Stability_Table_SD", "BRCA1_Lee_2010_Binding_Activity_Table_SD", "BRCA1_Lee_2010_Binding_Specificity_Table","BRCA1_Lee_2010_Transcription_Activity_BarGraph", "BRCA1_Lee_2010_Protease_Sensitivity", "BRCA1_Lee_2010_Binding_Activity", "BRCA1_Lee_2010_Binding_Specificity", "BRCA1_Lee_2010_Transcription_Activity", "BRCA1_Lee_2010_Functional_Effect", 
     "BRCA1_Starita_HDR_predit",
     "BRCA1_Hart_2018_Functional_score", "BRCA1_Hart_2018_Functional_classification",
+    "PP_auth_reported_rep_score",
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
     "spliceAI_DS_AG", "spliceAI_DS_AL", "spliceAI_DS_DG", "spliceAI_DS_DL"
@@ -184,6 +186,16 @@ def load_pillar(filepath):
         print(f"Error loading Pillar: {e}")
         return pd.DataFrame()
 
+ALLOWLIST_DATASETS = {
+    "FINDLAY_FILE",  # BRCA1_Findlay_2018 exempt from SpliceAI exclusion
+    "HUANG_FILE",    # Huang 2025
+    "SAHU_2023_FILE",
+    "SAHU_2025_FILE",
+    "FUNK_FILE",
+    "BUCKLEY_FILE",
+}
+
+
 def main():
     print("Starting BRCA1 pipeline...")
     
@@ -200,7 +212,13 @@ def main():
     
     # 2. Load Cravat (Backbone)
     cravat_df = load_cravat(CRAVAT_FILE)
+    cravat_df["spliceai_max"] = compute_spliceai_max(cravat_df)
+    splice_mask = get_spliceai_exclusion_mask(cravat_df)
+    exclude_keys = set(cravat_df.loc[splice_mask, "join_key"].dropna())
+    # LANGERUD uses HGVSc. as join key, so build a separate set for it
+    exclude_keys_hgvsc = set(cravat_df.loc[splice_mask, "HGVSc."].dropna())
     print(f"Cravat variants loaded: {len(cravat_df)}")
+    print(f"Variants with spliceai_max > 0.2: {len(exclude_keys)}")
     
     # 2b. Load Pillar
     pillar_df = load_pillar(PILLAR_FILE)
@@ -225,6 +243,25 @@ def main():
     lee_2010_df_2 = load_generic_dataset(LEE_FILE_2, "LEE_FILE_2")
     lee_2010_df_3 = load_generic_dataset(LEE_FILE_3, "LEE_FILE_3")
     starita_df = load_generic_dataset(STARITA_FILE, "STARITA_FILE", file_type='tsv')
+
+    # Filter Starita to only Pass/Pass on E3 and Y2H before any renaming or keying
+    if starita_df is not None and not starita_df.empty:
+        # Prefer the pass/fail classification columns if present, else fall back to raw score columns
+        e3_col = "Starita_E3_800_filter" if "Starita_E3_800_filter" in starita_df.columns else "Starita_E3_score"
+        y2h_col = "Starita_Y2H_800_filter" if "Starita_Y2H_800_filter" in starita_df.columns else "Starita_Y2H_score"
+
+        required_cols = [e3_col, y2h_col]
+        missing = [c for c in required_cols if c not in starita_df.columns]
+        if missing:
+            raise KeyError(f"Starita filter requires columns {required_cols}, missing: {missing}")
+
+        pre_count = len(starita_df)
+        starita_df = starita_df[
+            starita_df[e3_col].astype(str).str.strip().str.lower().eq("pass")
+            & starita_df[y2h_col].astype(str).str.strip().str.lower().eq("pass")
+        ]
+        post_count = len(starita_df)
+        print(f"Starita variants before filter: {pre_count}; after Pass/Pass filter: {post_count}")
     hart_2018_df = load_generic_dataset(HART_FILE, "HART_FILE")
 
     dataset_dfs = {
@@ -254,12 +291,34 @@ def main():
     
     # Merge Pillar (for functional mappings, not ClinVar fields)
     master_df = master_df.merge(pillar_df, on='join_key', how='left', suffixes=('', '_pillar'))
+
+    # Add replicate score from Pillar as PP_auth_reported_rep_score
+    rep_col = None
+    if 'auth_reported_rep_score_pillar' in master_df.columns:
+        rep_col = 'auth_reported_rep_score_pillar'
+    elif 'auth_reported_rep_score' in master_df.columns:
+        rep_col = 'auth_reported_rep_score'
+
+    master_df['PP_auth_reported_rep_score'] = master_df[rep_col] if rep_col else np.nan
+    rep_non_null = master_df['PP_auth_reported_rep_score'].notna().sum()
+    print(f"  PP_auth_reported_rep_score non-null after Pillar merge: {rep_non_null}")
     
     clinvar_pillar_cols = [c for c in master_df.columns if c.endswith('_pillar') and any(x in c for x in ['clinvar_sig', 'clinvar_star', 'clinvar_date'])]
     if clinvar_pillar_cols:
         master_df = master_df.drop(columns=clinvar_pillar_cols)
     
     # 5. Apply Functional Mappings
+    # Apply SpliceAI exclusion per assay (allowlist bypassed)
+    for name, df in dataset_dfs.items():
+        if name in ALLOWLIST_DATASETS or name in {"CRAVAT_FILE"}:
+            # Allowlisted assays bypass SpliceAI filtering
+            continue
+        # LANGERUD uses HGVSc. values in its join_key column, use exclude_keys_hgvsc
+        keys_to_use = exclude_keys_hgvsc if name == "LANGERUD_FILE" else exclude_keys
+        nulled = null_out_assay_for_splice(df, keys_to_use)
+        if nulled:
+            print(f"  SpliceAI filter nulled {nulled} rows for {name}")
+
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
     
     # 6. Fill Metadata Columns
