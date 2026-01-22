@@ -1,0 +1,112 @@
+Gene,assay_name,category_value,calibration_method,score_column,class_column,n_pathogenic,n_benign,n_total,P(category|pathogenic),P(category|benign),LR,evidence_strength,thresholds_used
+BRCA1,Adamovich et al 2022 BRCA1 Cisplatin,abnormal,threshold-based,BRCA1_Adamovich_Cisplatin_auth_func_score,,296,8,304,0.9817880794701986,0.0222513089005235,44.12271133619011,Pathogenic Strong,"Normal: [-0.503, inf]; Abnormal: [-inf, -0.729]; Not specified: [-0.729, -0.503]"
+BRCA1,Adamovich et al 2022 BRCA1 Cisplatin,normal,threshold-based,BRCA1_Adamovich_Cisplatin_auth_func_score,,4,347,351,0.0149006622516556,0.9096858638743456,0.0163800085759207,Benign Strong,"Normal: [-0.503, inf]; Abnormal: [-inf, -0.729]; Not specified: [-0.729, -0.503]"
+BRCA1,Adamovich et al 2022 BRCA1 Cisplatin,indeterminate,threshold-based,BRCA1_Adamovich_Cisplatin_auth_func_score,,1,26,27,0.0049668874172185,0.0693717277486911,0.0715981506934899,Benign Moderate,"Normal: [-0.503, inf]; Abnormal: [-inf, -0.729]; Not specified: [-0.729, -0.503]"
+BRCA1,Adamovich et al 2022 BRCA1 HDR,abnormal,threshold-based,BRCA1_Adamovich_HDR_auth_func_score,,297,30,327,0.9850993377483444,0.0798429319371727,12.33796547606123,Pathogenic Moderate,"Normal: [-0.233, inf]; Abnormal: [-inf, -0.562]; Not specified: [-0.562, -0.233]"
+BRCA1,Adamovich et al 2022 BRCA1 HDR,normal,threshold-based,BRCA1_Adamovich_HDR_auth_func_score,,3,285,288,0.0115894039735099,0.7473821989528796,0.0155066631099152,Benign Strong,"Normal: [-0.233, inf]; Abnormal: [-inf, -0.562]; Not specified: [-0.562, -0.233]"
+BRCA1,Adamovich et al 2022 BRCA1 HDR,indeterminate,threshold-based,BRCA1_Adamovich_HDR_auth_func_score,,1,66,67,0.0049668874172185,0.1740837696335078,0.0285315938853756,Benign Strong,"Normal: [-0.233, inf]; Abnormal: [-inf, -0.562]; Not specified: [-0.562, -0.233]"
+BRCA1,Bouwman et al 2020 BRCA1 Cisplatin Sensitivty,abnormal,threshold-based,BRCA1_Bouwman_2020_Cisplatin_nIC50b,,1,3,4,0.06,0.1029411764705882,0.5828571428571429,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 Cisplatin Sensitivty,normal,threshold-based,BRCA1_Bouwman_2020_Cisplatin_nIC50b,,0,0,0,0.02,0.0147058823529411,1.36,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 Cisplatin Sensitivty,indeterminate,threshold-based,BRCA1_Bouwman_2020_Cisplatin_nIC50b,,23,30,53,0.94,0.8970588235294118,1.0478688524590165,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 HDR,abnormal,threshold-based,BRCA1_Bouwman_2020_nGFP+b,,1,4,5,0.06,0.1323529411764706,0.4533333333333333,Benign Supporting,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 HDR,normal,threshold-based,BRCA1_Bouwman_2020_nGFP+b,,0,0,0,0.02,0.0147058823529411,1.36,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 HDR,indeterminate,threshold-based,BRCA1_Bouwman_2020_nGFP+b,,23,29,52,0.94,0.8676470588235294,1.0833898305084744,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 Olaparib Sensitivity,abnormal,threshold-based,BRCA1_Bouwman_2020_Olaparib_nIC50b,,0,1,1,0.02,0.0441176470588235,0.4533333333333333,Benign Supporting,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 Olaparib Sensitivity,normal,threshold-based,BRCA1_Bouwman_2020_Olaparib_nIC50b,,0,0,0,0.02,0.0147058823529411,1.36,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Bouwman et al 2020 BRCA1 Olaparib Sensitivity,indeterminate,threshold-based,BRCA1_Bouwman_2020_Olaparib_nIC50b,,24,32,56,0.98,0.9558823529411764,1.0252307692307692,Indeterminate,"abnormal: [0.99, 1.0]; abnormal: [0.95, 0.99]; intermediate: [0.05, 0.95]"
+BRCA1,Fernandes et al 2019 BRCA1,abnormal,threshold-based,BRCA1_Fernandes_eta,,82,48,130,0.9482758620689656,0.9897959183673468,0.9580519018841096,Indeterminate,"abnormal: [0.0, 80.0]; normal: [80.0, inf]"
+BRCA1,Fernandes et al 2019 BRCA1,normal,threshold-based,BRCA1_Fernandes_eta,,0,0,0,0.0057471264367816,0.010204081632653,0.5632183908045978,Indeterminate,"abnormal: [0.0, 80.0]; normal: [80.0, inf]"
+BRCA1,Fernandes et al 2019 BRCA1,indeterminate,threshold-based,BRCA1_Fernandes_eta,,4,0,4,0.0517241379310344,0.010204081632653,5.06896551724138,Pathogenic Moderate,"abnormal: [0.0, 80.0]; normal: [80.0, inf]"
+BRCA1,Findlay et al 2018 BRCA1,abnormal,threshold-based,BRCA1_Findlay_auth_func_score,,286,1,287,0.9486754966887416,0.0039267015706806,241.59602649006624,Pathogenic Strong,"Normal: [-0.748, inf]; Not specified: [-1.328, -0.748]; Abnormal: [-inf, -1.328]"
+BRCA1,Findlay et al 2018 BRCA1,normal,threshold-based,BRCA1_Findlay_auth_func_score,,6,373,379,0.021523178807947,0.9777486910994764,0.0220129967995602,Benign Strong,"Normal: [-0.748, inf]; Not specified: [-1.328, -0.748]; Abnormal: [-inf, -1.328]"
+BRCA1,Findlay et al 2018 BRCA1,indeterminate,threshold-based,BRCA1_Findlay_auth_func_score,,9,7,16,0.0314569536423841,0.0196335078534031,1.602207505518764,Indeterminate,"Normal: [-0.748, inf]; Not specified: [-1.328, -0.748]; Abnormal: [-inf, -1.328]"
+BRCA1,Hart et al 2018 BRCA1,Neutral,classification-based,,BRCA1_Hart_2018_Functional_classification,11,44,55,0.1554054054054054,0.9888888888888888,0.1571515335560279,Benign Moderate,
+BRCA1,Hart et al 2018 BRCA1,Damaging,classification-based,,BRCA1_Hart_2018_Functional_classification,57,0,57,0.777027027027027,0.0111111111111111,69.93243243243242,Pathogenic Strong,
+BRCA1,Hart et al 2018 BRCA1,Indeterminate,classification-based,,BRCA1_Hart_2018_Functional_classification,5,0,5,0.0743243243243243,0.0111111111111111,6.6891891891891895,Pathogenic Moderate,
+BRCA1,Caleca et al 2019 BRCA1 UbCH5a,+,classification-based,,BRCA1_Caleca_2019_UbCH5a_Binding,0,2,2,0.0238095238095238,0.8333333333333334,0.0285714285714285,Benign Strong,
+BRCA1,Caleca et al 2019 BRCA1 UbCH5a,-,classification-based,,BRCA1_Caleca_2019_UbCH5a_Binding,20,0,20,0.9761904761904762,0.1666666666666666,5.857142857142858,Pathogenic Moderate,
+BRCA1,Caleca et al 2019 BRCA1 BARD1,+,classification-based,,BRCA1_Caleca_2019_BARD1_Binding,3,2,5,0.1666666666666666,0.8333333333333334,0.1999999999999999,Benign Moderate,
+BRCA1,Caleca et al 2019 BRCA1 BARD1,-,classification-based,,BRCA1_Caleca_2019_BARD1_Binding,17,0,17,0.8333333333333334,0.1666666666666666,5.000000000000001,Pathogenic Moderate,
+BRCA1,Langerud et al 2018 BRCA1,High_risk,classification-based,,BRCA1_Langerud_2018_Risk_Category,6,0,6,0.8125,0.1,8.125,Pathogenic Moderate,
+BRCA1,Langerud et al 2018 BRCA1,Low_risk,classification-based,,BRCA1_Langerud_2018_Risk_Category,0,4,4,0.0625,0.9,0.0694444444444444,Benign Moderate,
+BRCA1,Langerud et al 2018 BRCA1,Intermediate,classification-based,,BRCA1_Langerud_2018_Risk_Category,1,0,1,0.1875,0.1,1.875,Indeterminate,
+BRCA1,Gou et al 2023 BRCA1,Benign,classification-based,,BRCA1_Gou_2023_HR_function,4,3,7,0.9,0.7,1.2857142857142858,Indeterminate,
+BRCA1,Gou et al 2023 BRCA1,Pathogenic,classification-based,,BRCA1_Gou_2023_HR_function,0,1,1,0.1,0.3,0.3333333333333333,Benign Supporting,
+BRCA1,BRCA1_Bouwman_2013_Classification,Neutral,classification-based,,BRCA1_Bouwman_2013_Classification,2,31,33,0.1136363636363636,0.984375,0.1154401154401154,Benign Moderate,
+BRCA1,BRCA1_Bouwman_2013_Classification,Deleterious,classification-based,,BRCA1_Bouwman_2013_Classification,19,0,19,0.8863636363636364,0.015625,56.72727272727273,Pathogenic Strong,
+BRCA1,BRCA1_Lee_2010_Functional_Effect,No functional effect,classification-based,,BRCA1_Lee_2010_Functional_Effect,3,14,17,0.0555555555555555,0.7631578947368421,0.0727969348659003,Benign Moderate,
+BRCA1,BRCA1_Lee_2010_Functional_Effect,Uncertain,classification-based,,BRCA1_Lee_2010_Functional_Effect,11,2,13,0.1825396825396825,0.131578947368421,1.3873015873015873,Indeterminate,
+BRCA1,BRCA1_Lee_2010_Functional_Effect,Strong functional effect,classification-based,,BRCA1_Lee_2010_Functional_Effect,43,0,43,0.6904761904761905,0.0263157894736842,26.23809523809524,Pathogenic Strong,
+BRCA1,BRCA1_Lee_2010_Functional_Effect,Moderate functional effect,classification-based,,BRCA1_Lee_2010_Functional_Effect,5,0,5,0.0873015873015873,0.0263157894736842,3.3174603174603177,Pathogenic Supporting,
+BRCA1,BRCA1_Lee_2010_Functional_Effect,Low functional effect,classification-based,,BRCA1_Lee_2010_Functional_Effect,0,2,2,0.0079365079365079,0.131578947368421,0.0603174603174603,Benign Moderate,
+BRCA2,Hu et al 2024 BRCA2,abnormal,threshold-based,BRCA2_Hu_2024_func_score,,333,1368,1701,0.9808823529411764,0.96170063246662,1.019945625308947,Indeterminate,"Abnormal: [-inf, 1.49]; Normal: [2.5, inf]; Not specified: [1.49, 2.5]"
+BRCA2,Hu et al 2024 BRCA2,normal,threshold-based,BRCA2_Hu_2024_func_score,,5,52,57,0.0161764705882352,0.0368938861560084,0.4384593837535014,Benign Supporting,"Abnormal: [-inf, 1.49]; Normal: [2.5, inf]; Not specified: [1.49, 2.5]"
+BRCA2,Hu et al 2024 BRCA2,indeterminate,threshold-based,BRCA2_Hu_2024_func_score,,1,2,3,0.0044117647058823,0.0017568517217146,2.511176470588236,Pathogenic Supporting,"Abnormal: [-inf, 1.49]; Normal: [2.5, inf]; Not specified: [1.49, 2.5]"
+BRCA2,Ikegami et al 2020 BRCA2 Olaparib,abnormal,threshold-based,BRCA2_Ikegami_2020_Olaparib_BF,,0,0,0,0.0121951219512195,0.0125,0.975609756097561,Indeterminate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Olaparib,normal,threshold-based,BRCA2_Ikegami_2020_Olaparib_BF,,6,32,38,0.1585365853658536,0.8125,0.1951219512195122,Benign Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Olaparib,indeterminate,threshold-based,BRCA2_Ikegami_2020_Olaparib_BF,,34,7,41,0.8414634146341463,0.1875,4.48780487804878,Pathogenic Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Niraparib,abnormal,threshold-based,BRCA2_Ikegami_2020_Niraparib_BF,,0,0,0,0.0121951219512195,0.0125,0.975609756097561,Indeterminate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Niraparib,normal,threshold-based,BRCA2_Ikegami_2020_Niraparib_BF,,6,35,41,0.1585365853658536,0.8875,0.1786327722432154,Benign Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Niraparib,indeterminate,threshold-based,BRCA2_Ikegami_2020_Niraparib_BF,,34,4,38,0.8414634146341463,0.1125,7.479674796747967,Pathogenic Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Rucaparib,abnormal,threshold-based,BRCA2_Ikegami_2020_Rucaparib_BF,,0,0,0,0.0121951219512195,0.0125,0.975609756097561,Indeterminate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Rucaparib,normal,threshold-based,BRCA2_Ikegami_2020_Rucaparib_BF,,6,30,36,0.1585365853658536,0.7625,0.2079168332666933,Benign Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 Rucaparib,indeterminate,threshold-based,BRCA2_Ikegami_2020_Rucaparib_BF,,34,9,43,0.8414634146341463,0.2375,3.5430038510911426,Pathogenic Supporting,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 CBDCA,abnormal,threshold-based,BRCA2_Ikegami_2020_CBDCA_BF,,0,0,0,0.0121951219512195,0.0125,0.975609756097561,Indeterminate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 CBDCA,normal,threshold-based,BRCA2_Ikegami_2020_CBDCA_BF,,6,32,38,0.1585365853658536,0.8125,0.1951219512195122,Benign Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Ikegami et al 2020 BRCA2 CBDCA,indeterminate,threshold-based,BRCA2_Ikegami_2020_CBDCA_BF,,34,7,41,0.8414634146341463,0.1875,4.48780487804878,Pathogenic Moderate,"normal: [-inf, 0.003]; normal: [0.003, 0.053]; intermediate: [0.053, 18.7]"
+BRCA2,Huang et al 2025 BRCA2,B strong,classification-based,,BRCA2_Huang_2025_HDR_func_category,4,1294,1298,0.014657980456026,0.9896788990825688,0.0148108446786265,Benign Strong,
+BRCA2,Huang et al 2025 BRCA2,P strong,classification-based,,BRCA2_Huang_2025_HDR_func_category,292,1,293,0.9527687296416938,0.0011467889908256,830.814332247557,Pathogenic Very Strong,
+BRCA2,Huang et al 2025 BRCA2,P supporting,classification-based,,BRCA2_Huang_2025_HDR_func_category,3,0,3,0.011400651465798,0.0003822629969418,29.824104234527688,Pathogenic Strong,
+BRCA2,Huang et al 2025 BRCA2,P moderate,classification-based,,BRCA2_Huang_2025_HDR_func_category,3,1,4,0.011400651465798,0.0011467889908256,9.941368078175897,Pathogenic Moderate,
+BRCA2,Huang et al 2025 BRCA2,B moderate,classification-based,,BRCA2_Huang_2025_HDR_func_category,2,9,11,0.00814332247557,0.007262996941896,1.1212069261100637,Indeterminate,
+BRCA2,Huang et al 2025 BRCA2,VUS,classification-based,,BRCA2_Huang_2025_HDR_func_category,2,2,4,0.00814332247557,0.0019113149847094,4.260586319218241,Pathogenic Supporting,
+BRCA2,Hart et al 2021 BRCA2,Neutral,classification-based,,BRCA2_Hart_2021_func_class,0,34,34,0.0104166666666666,0.9583333333333334,0.0108695652173913,Benign Strong,
+BRCA2,Hart et al 2021 BRCA2,Damaging,classification-based,,BRCA2_Hart_2021_func_class,47,0,47,0.9895833333333334,0.0138888888888888,71.25,Pathogenic Strong,
+BRCA2,Hart et al 2021 BRCA2,Indeterminate,classification-based,,BRCA2_Hart_2021_func_class,0,1,1,0.0104166666666666,0.0416666666666666,0.25,Benign Supporting,
+BRCA2,Biswas et al 2020 BRCA2,Functional,classification-based,,BRCA2_Biswas_2020_func_class,0,15,15,0.025,0.8611111111111112,0.0290322580645161,Benign Strong,
+BRCA2,Biswas et al 2020 BRCA2,Nonfunctional,classification-based,,BRCA2_Biswas_2020_func_class,18,0,18,0.925,0.0277777777777777,33.300000000000004,Pathogenic Strong,
+BRCA2,Biswas et al 2020 BRCA2,Indeterminate,classification-based,,BRCA2_Biswas_2020_func_class,1,2,3,0.075,0.1388888888888889,0.5399999999999999,Indeterminate,
+BRCA2,Sahu et al 2023 BRCA2,Normal,classification-based,,BRCA2_Sahu_2023_functional_class,5,49,54,0.0808823529411764,0.99,0.0816993464052287,Benign Moderate,
+BRCA2,Sahu et al 2023 BRCA2,Abnormal,classification-based,,BRCA2_Sahu_2023_functional_class,61,0,61,0.9044117647058824,0.01,90.44117647058825,Pathogenic Strong,
+BRCA2,Sahu et al 2023 BRCA2,Intermediate,classification-based,,BRCA2_Sahu_2023_functional_class,1,0,1,0.0220588235294117,0.01,2.2058823529411766,Pathogenic Supporting,
+BRCA2,Sahu et al 2025 BRCA2,Normal,classification-based,,BRCA2_Sahu_2025_functional_class,5,49,54,0.0808823529411764,0.99,0.0816993464052287,Benign Moderate,
+BRCA2,Sahu et al 2025 BRCA2,Abnormal,classification-based,,BRCA2_Sahu_2025_functional_class,61,0,61,0.9044117647058824,0.01,90.44117647058825,Pathogenic Strong,
+BRCA2,Sahu et al 2025 BRCA2,Intermediate,classification-based,,BRCA2_Sahu_2025_functional_class,1,0,1,0.0220588235294117,0.01,2.2058823529411766,Pathogenic Supporting,
+BRCA2,Richardson et al 2021 BRCA2,Benign,classification-based,,BRCA2_Richardson_2021_HDR_Function,0,18,18,0.0092592592592592,0.5138888888888888,0.018018018018018,Benign Strong,
+BRCA2,Richardson et al 2021 BRCA2,Pathogenic,classification-based,,BRCA2_Richardson_2021_HDR_Function,26,0,26,0.4907407407407407,0.0138888888888888,35.333333333333336,Pathogenic Strong,
+BRCA2,Richardson et al 2021 BRCA2,LB,classification-based,,BRCA2_Richardson_2021_HDR_Function,0,11,11,0.0092592592592592,0.3194444444444444,0.0289855072463768,Benign Strong,
+BRCA2,Richardson et al 2021 BRCA2,LP,classification-based,,BRCA2_Richardson_2021_HDR_Function,14,0,14,0.2685185185185185,0.0138888888888888,19.333333333333336,Pathogenic Strong,
+BRCA2,Richardson et al 2021 BRCA2,VUS,classification-based,,BRCA2_Richardson_2021_HDR_Function,3,1,4,0.0648148148148148,0.0416666666666666,1.5555555555555556,Indeterminate,
+BRCA2,Richardson et al 2021 BRCA2,Not observed,classification-based,,BRCA2_Richardson_2021_HDR_Function,10,5,15,0.1944444444444444,0.1527777777777778,1.2727272727272727,Indeterminate,
+BRCA2,Guidugli et al 2018 BRCA2,deleterious,classification-based,,BRCA2_Guidugli_2018_HDR_annotation,40,0,40,0.9878048780487804,0.0192307692307692,51.36585365853658,Pathogenic Strong,
+BRCA2,Guidugli et al 2018 BRCA2,neutral,classification-based,,BRCA2_Guidugli_2018_HDR_annotation,0,24,24,0.0121951219512195,0.9423076923076924,0.0129417620706819,Benign Strong,
+BRCA2,Guidugli et al 2018 BRCA2,likely neutral,classification-based,,BRCA2_Guidugli_2018_HDR_annotation,0,1,1,0.0121951219512195,0.0576923076923076,0.2113821138211382,Benign Moderate,
+BRCA2,Caleca et al 2019 BRCA2 DSS1,+,classification-based,,BRCA2_Caleca_2019_BRCA2_DSS1_Binding,0,6,6,0.0416666666666666,0.9285714285714286,0.0448717948717948,Benign Strong,
+BRCA2,Caleca et al 2019 BRCA2 DSS1,-,classification-based,,BRCA2_Caleca_2019_BRCA2_DSS1_Binding,11,0,11,0.9583333333333334,0.0714285714285714,13.416666666666668,Pathogenic Moderate,
+MSH2,Jia et al MSH2,Neutral,classification-based,,Jia_auth_reported_functional_class,3,24,27,0.0564516129032258,0.9423076923076924,0.0599078341013824,Benign Moderate,
+MSH2,Jia et al MSH2,Deleterious,classification-based,,Jia_auth_reported_functional_class,58,1,59,0.9435483870967742,0.0576923076923076,16.35483870967742,Pathogenic Moderate,
+MSH2,Ollodart et al MSH2,**,classification-based,,Ollodart_auth_reported_functional_class,8,1,9,0.1976744186046511,0.1666666666666666,1.186046511627907,Indeterminate,
+MSH2,Ollodart et al MSH2,ns,classification-based,,Ollodart_auth_reported_functional_class,3,7,10,0.0813953488372093,0.8333333333333334,0.0976744186046511,Benign Moderate,
+MSH2,Ollodart et al MSH2,****,classification-based,,Ollodart_auth_reported_functional_class,20,0,20,0.4767441860465116,0.0555555555555555,8.58139534883721,Pathogenic Moderate,
+MSH2,Ollodart et al MSH2,***,classification-based,,Ollodart_auth_reported_functional_class,9,0,9,0.2209302325581395,0.0555555555555555,3.976744186046512,Pathogenic Supporting,
+MSH2,Ollodart et al MSH2,*,classification-based,,Ollodart_auth_reported_functional_class,2,0,2,0.0581395348837209,0.0555555555555555,1.0465116279069768,Indeterminate,
+TP53,Funk et al 2025 TP53,noLOF,classification-based,,TP53_Funk_2025_func_class,6,38,44,0.0323383084577114,0.9390243902439024,0.034438198617303,Benign Strong,
+TP53,Funk et al 2025 TP53,LOF,classification-based,,TP53_Funk_2025_func_class,194,2,196,0.9676616915422884,0.0609756097560975,15.869651741293533,Pathogenic Moderate,
+TP53,Fayer et al 2021 TP53,Functionally normal,classification-based,,TP53_Fayer_2021_Classifier_prediction,0,44,44,0.0416666666666666,0.9888888888888888,0.0421348314606741,Benign Strong,
+TP53,Fayer et al 2021 TP53,Functionally abnormal,classification-based,,TP53_Fayer_2021_Classifier_prediction,11,0,11,0.9583333333333334,0.0111111111111111,86.25,Pathogenic Strong,
+TP53,Kotler et al TP53,noLOF,classification-based,,TP53_Kotler_func_class,21,41,62,0.099537037037037,0.988095238095238,0.1007362784471218,Benign Moderate,
+TP53,Kotler et al TP53,LOF,classification-based,,TP53_Kotler_func_class,194,0,194,0.9004629629629629,0.0119047619047619,75.63888888888889,Pathogenic Strong,
+TP53,Kawaguchi et al TP53,ND,classification-based,,TP53_Kawaguchi_func_class,1,2,3,0.1153846153846153,0.108695652173913,1.0615384615384615,Indeterminate,
+TP53,Kawaguchi et al TP53,Tetramer,classification-based,,TP53_Kawaguchi_func_class,2,17,19,0.1923076923076923,0.7608695652173914,0.2527472527472527,Benign Supporting,
+TP53,Kawaguchi et al TP53,Dimer,classification-based,,TP53_Kawaguchi_func_class,1,3,4,0.1153846153846153,0.1521739130434782,0.7582417582417582,Indeterminate,
+TP53,Kawaguchi et al TP53,Monomer,classification-based,,TP53_Kawaguchi_func_class,8,0,8,0.6538461538461539,0.0217391304347826,30.07692307692308,Pathogenic Strong,
+TP53,Kato et al TP53,Functional,classification-based,,TP53_Kato_func_class,3,125,128,0.0152173913043478,0.8838028169014085,0.0172180841849991,Benign Strong,
+TP53,Kato et al TP53,Partially functional,classification-based,,TP53_Kato_func_class,17,13,30,0.0760869565217391,0.0950704225352112,0.8003220611916265,Indeterminate,
+TP53,Kato et al TP53,Non-functional,classification-based,,TP53_Kato_func_class,207,3,210,0.9021739130434784,0.0246478873239436,36.60248447204969,Pathogenic Strong,
+TP53,Kato et al TP53,No data,classification-based,,TP53_Kato_func_class,2,0,2,0.0108695652173913,0.0035211267605633,3.0869565217391304,Pathogenic Supporting,
+TP53,Giacomelli et al TP53,noLOF,classification-based,,TP53_Giacomelli_func_class,35,140,175,0.1543478260869565,0.98943661971831,0.1559956676466037,Benign Moderate,
+TP53,Giacomelli et al TP53,LOF,classification-based,,TP53_Giacomelli_func_class,194,1,195,0.8456521739130435,0.0105633802816901,80.05507246376811,Pathogenic Strong,
+VHL,Buckley et al 2016 VHL,Neutral,classification-based,,VHL_Buckley_2016_reported_functional_class,2,32,34,0.0675675675675675,0.9027777777777778,0.0748440748440748,Benign Moderate,
+VHL,Buckley et al 2016 VHL,Intermediate,classification-based,,VHL_Buckley_2016_reported_functional_class,4,2,6,0.1216216216216216,0.0694444444444444,1.7513513513513514,Indeterminate,
+VHL,Buckley et al 2016 VHL,LOF1,classification-based,,VHL_Buckley_2016_reported_functional_class,24,0,24,0.6621621621621622,0.0138888888888888,47.67567567567568,Pathogenic Strong,
+VHL,Buckley et al 2016 VHL,LOF2,classification-based,,VHL_Buckley_2016_reported_functional_class,6,1,7,0.1756756756756756,0.0416666666666666,4.216216216216217,Pathogenic Supporting,

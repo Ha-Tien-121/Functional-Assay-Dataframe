@@ -23,7 +23,8 @@ TARGET_COLUMNS = [
     "Gene", "HGNC ID", "Ensembl_transcript_ID", "Ref_seq_transcript_ID", "HGVSc.", "HGVSp.", "Chrom", 
     "hg38_start", "hg38_end", "ref_allele", "alt_allele", 
     "aa_pos", "aa_ref", "aa_alt", 
-    "VHL_Buckley_2016_function_score", 
+    "VHL_Buckley_2016_function_score",
+    "VHL_Buckley_2016_reported_functional_class",
     "PP_auth_reported_rep_score",
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
@@ -207,6 +208,42 @@ def main():
     master_df['PP_auth_reported_rep_score'] = master_df[rep_col] if rep_col else np.nan
     rep_non_null = master_df['PP_auth_reported_rep_score'].notna().sum()
     print(f"  PP_auth_reported_rep_score non-null after Pillar merge: {rep_non_null}")
+    
+    # Load functional class column from pillar data (Buckley)
+    print("Loading functional classification column from Pillar...")
+    func_class_col = None
+    if 'auth_reported_func_class_pillar' in master_df.columns:
+        func_class_col = 'auth_reported_func_class_pillar'
+    elif 'auth_reported_func_class' in master_df.columns:
+        func_class_col = 'auth_reported_func_class'
+    
+    if func_class_col:
+        master_df['VHL_Buckley_2016_reported_functional_class'] = master_df[func_class_col]
+    else:
+        # Load pillar data again to get the functional class
+        pillar_full = pd.read_csv(PILLAR_FILE, low_memory=False)
+        if 'join_key' not in pillar_full.columns:
+            if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(pillar_full.columns):
+                pillar_full['join_key'] = pillar_full.apply(
+                    lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
+                    if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
+                    axis=1
+                )
+            elif 'hgvs_p' in pillar_full.columns:
+                parsed = pillar_full['hgvs_p'].apply(parse_hgvsp)
+                pillar_full['join_key'] = parsed.apply(lambda x: x[3])
+        
+        if 'auth_reported_func_class' in pillar_full.columns:
+            buckley_df = pillar_full[['join_key', 'auth_reported_func_class']].copy()
+            buckley_df = buckley_df.rename(columns={'auth_reported_func_class': 'VHL_Buckley_2016_reported_functional_class'})
+            buckley_df = buckley_df.drop_duplicates(subset=['join_key'])
+            master_df = master_df.merge(buckley_df, on='join_key', how='left')
+        else:
+            master_df['VHL_Buckley_2016_reported_functional_class'] = np.nan
+    
+    buckley_count = master_df['VHL_Buckley_2016_reported_functional_class'].notna().sum()
+    print(f"  VHL_Buckley_2016_reported_functional_class non-null: {buckley_count}")
+    
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
     
     master_df['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:12687')

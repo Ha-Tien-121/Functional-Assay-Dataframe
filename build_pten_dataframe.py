@@ -23,7 +23,9 @@ TARGET_COLUMNS = [
     "hg38_start", "hg38_end", "ref_allele", "alt_allele", 
     "aa_pos", "aa_ref", "aa_alt", 
     "PTEN_Matreyek_2018_func_score",
+    "PTEN_Matreyek_2018_reported_functional_class",
     "PTEN_Mighell_2018_func_score",
+    "PTEN_Mighell_2018_reported_functional_class",
     "PP_auth_reported_rep_score",
     "gnomad_MAF", 
     "clinvar_sig_2025", "clinvar_star_2025", "clinvar_date_last_reviewed_2025", 
@@ -239,6 +241,38 @@ def main():
     master_df['PP_auth_reported_rep_score'] = master_df[rep_col] if rep_col else np.nan
     rep_non_null = master_df['PP_auth_reported_rep_score'].notna().sum()
     print(f"  PP_auth_reported_rep_score non-null after Pillar merge: {rep_non_null}")
+    
+    # Load functional class columns from pillar data by dataset
+    print("Loading functional classification columns from Pillar by dataset...")
+    pillar_full = pd.read_csv(PILLAR_FILE, low_memory=False)
+    
+    # Build join_key for pillar_full if not present
+    if 'join_key' not in pillar_full.columns:
+        if {'aa_pos', 'aa_ref', 'aa_alt'}.issubset(pillar_full.columns):
+            pillar_full['join_key'] = pillar_full.apply(
+                lambda row: f"{row['aa_ref']}{int(row['aa_pos']) if pd.notna(row['aa_pos']) else ''}{row['aa_alt']}" 
+                if pd.notna(row['aa_ref']) and pd.notna(row['aa_pos']) and pd.notna(row['aa_alt']) else np.nan, 
+                axis=1
+            )
+        elif 'hgvs_p' in pillar_full.columns:
+            parsed = pillar_full['hgvs_p'].apply(parse_hgvsp)
+            pillar_full['join_key'] = parsed.apply(lambda x: x[3])
+    
+    # Matreyek functional class
+    matreyek_df = pillar_full[pillar_full['Dataset'] == 'PTEN_Matreyek_2018'][['join_key', 'auth_reported_func_class']].copy()
+    matreyek_df = matreyek_df.rename(columns={'auth_reported_func_class': 'PTEN_Matreyek_2018_reported_functional_class'})
+    matreyek_df = matreyek_df.drop_duplicates(subset=['join_key'])
+    master_df = master_df.merge(matreyek_df, on='join_key', how='left')
+    matreyek_count = master_df['PTEN_Matreyek_2018_reported_functional_class'].notna().sum()
+    print(f"  PTEN_Matreyek_2018_reported_functional_class non-null: {matreyek_count}")
+    
+    # Mighell functional class
+    mighell_df = pillar_full[pillar_full['Dataset'] == 'PTEN_Mighell_2018'][['join_key', 'auth_reported_func_class']].copy()
+    mighell_df = mighell_df.rename(columns={'auth_reported_func_class': 'PTEN_Mighell_2018_reported_functional_class'})
+    mighell_df = mighell_df.drop_duplicates(subset=['join_key'])
+    master_df = master_df.merge(mighell_df, on='join_key', how='left')
+    mighell_count = master_df['PTEN_Mighell_2018_reported_functional_class'].notna().sum()
+    print(f"  PTEN_Mighell_2018_reported_functional_class non-null: {mighell_count}")
     
     # Debug: Print counts before merge update
     cravat_count = master_df['clinvar_date_last_reviewed_2025'].notna().sum() if 'clinvar_date_last_reviewed_2025' in master_df.columns else 0
