@@ -1,15 +1,14 @@
 # Functional Assay Dataframe
 
-A pipeline for building comprehensive master dataframes of functional assay data for hereditary cancer gene variants, with likelihood ratio (LR) calibration for clinical interpretation.
 
 ## Supported Genes
 
-- **BRCA1** - Breast Cancer 1
-- **BRCA2** - Breast Cancer 2  
-- **MSH2** - MutS Homolog 2
-- **PTEN** - Phosphatase and Tensin Homolog
-- **TP53** - Tumor Protein P53
-- **VHL** - Von Hippel-Lindau
+- **BRCA1** 
+- **BRCA2** 
+- **MSH2** 
+- **PTEN** 
+- **TP53** 
+- **VHL**
 
 ## Project Structure
 
@@ -101,20 +100,9 @@ python src/scripts/gzip_output_files.py
 
 ## Calibration Methods
 
-The pipeline supports two calibration approaches:
-
-### Threshold-Based (MaveDB)
-Uses curated score thresholds from MaveDB to classify variants into:
-- **Abnormal** (loss of function)
-- **Normal** (functional)
-- **Indeterminate** (uncertain)
-
-### Classification-Based
-Uses author-reported functional classifications directly, calculating LR for each individual category.
-
 ### Evidence Strength Mapping
 
-Likelihood ratios are mapped to ACMG/AMP evidence strength using Tavtigian thresholds:
+Likelihood ratios are mapped to ACMG/AMP evidence strength:
 
 | LR Range | Evidence Strength |
 |----------|-------------------|
