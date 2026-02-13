@@ -12,7 +12,7 @@ T33P,97A>C,3,3,EC 45,YES,MLH1+ MSH2+ MSH6+,Bethesda,/,0.0064,33,decreased repair
 Y43C,128A>G,3,3,Synchronous CRC 50,NO,MLH1+ MSH2+ MSH6-,/,father: CRC 50; sister: CRC 50; sister: CCR 52; daughter: EC 39,0.0028,33,/,15.53% Neutral
 Y43C,128A>G,3,3,CRC 49,/,/,/,mother: CRC 73,0.0028,33,/,15.53% Neutral
 Y43C,128A>G,3,3,GC 65,/,/,/,sister: ovary 65; sister: EC sarcoma 64; father and mother: brain tumor,0.0028,33,/,15.53% Neutral
-M152T,455T>C,/,3,Spo EC < 50,NO,MLH1+ MSH2+ MSH6+ PMS2+,/,/,16.7,/,10.26% Neutral
+M152T,455T>C,/,3,Spo EC < 50,NO,MLH1+ MSH2+ MSH6+ PMS2+,/,/,/,16.7,/,10.26% Neutral
 R243Q,728G>A,3,3,Spo CRC <50,NO,MSH2-MSH6-,/,/,0.0017,33,/,23.56% Neutral
 A305T,913G>A,3,3,CRC < 50,NO,/,Amsterdam I,/,0.005,32,53% repair activity in vitro ; proficient mismatch binding & ATP-dependent release; 2.2-fold induction of mutation rate in bacteria; nuclear localization in MEF; intact EXO1 interaction; expression similar to WT,30.54% Neutral
 A305T,913G>A,3,3,/,NO,MSH2+,/,/,0.005,32,53% repair activity in vitro ; proficient mismatch binding & ATP-dependent release; 2.2-fold induction of mutation rate in bacteria; nuclear localization in MEF; intact EXO1 interaction; expression similar to WT,30.54% Neutral

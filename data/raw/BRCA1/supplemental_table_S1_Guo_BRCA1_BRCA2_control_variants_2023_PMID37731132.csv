@@ -1,0 +1,22 @@
+Gene,Clinical_significance,HGVS,Amino_acid_change,Database,Relative_HR_activity,CI_95_Low,CI_95_Up
+BRCA1,Benign,c.824G>A,p.Gly275Asp,ClinVar,0.79,0.665,0.807
+BRCA1,Benign,c.2286A>T,p.Arg762Ser,ClinVar,0.65,0.665,0.807
+BRCA1,Benign,c.4729T>C,p.Ser1577Pro,ClinVar,0.68,0.665,0.807
+BRCA1,Benign,c.4883T>C,p.Met1628Thr,"ClinVar, MGeND",0.82,0.665,0.807
+BRCA1,Pathogenic,c.65T>C,p.Leu22Ser,ClinVar,0.43,0.361,0.641
+BRCA1,Pathogenic,c.71G>A,p.Cys24Tyr,JOHBOC,0.53,0.361,0.641
+BRCA1,Pathogenic,c.122A>G,p.His41Arg,ClinVar,0.10,0.361,0.641
+BRCA1,Pathogenic,c.140G>A,p.Cys47Tyr,"ClinVar, JOHBOC",0.56,0.361,0.641
+BRCA1,Pathogenic,c.181T>G,p.Cys61Gly,"ClinVar, JOHBOC",0.36,0.361,0.641
+BRCA1,Pathogenic,c.191G>A,p.Cys64Tyr,"ClinVar, JOHBOC, MGeND",0.40,0.361,0.641
+BRCA1,Pathogenic,c.2879G>A,p.Gly960Asp,JOHBOC,0.92,0.361,0.641
+BRCA1,Pathogenic,c.5116G>A,p.Gly1706Arg,ClinVar,0.53,0.361,0.641
+BRCA1,Pathogenic,c.5558A>G,p.Tyr1853Cys,ClinVar,0.68,0.361,0.641
+BRCA2,Benign,c.53G>A,p.Arg18His,"ClinVar, JOHBOC, MGeND",1.08,0.881,1.108
+BRCA2,Benign,c.1744A>C,p.Thr582Pro,"ClinVar, MGeND",1.06,0.881,1.108
+BRCA2,Benign,c.3396A>G,p.Lys1132=,"ClinVar, MGeND",0.77,0.881,1.108
+BRCA2,Benign,c.3420T>C,p.Ser1140=,ClinVar,0.94,0.881,1.108
+BRCA2,Benign,c.5785A>G,p.Ile1929Val,"ClinVar, MGeND",1.10,0.881,1.108
+BRCA2,Pathogenic,c.91T>A,p.Trp31Arg,"JOHBOC, MGeND",0.25,0.042,0.224
+BRCA2,Pathogenic,c.8165C>A,p.Thr2722Lys,"ClinVar, JOHBOC, MGeND",0.08,0.042,0.224
+BRCA2,Pathogenic,c.9154C>T,p.Arg3052Trp,"ClinVar, JOHBOC, MGeND",0.08,0.042,0.224

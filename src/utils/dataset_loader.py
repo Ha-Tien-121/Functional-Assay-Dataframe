@@ -15,6 +15,7 @@ JOIN_KEY_COLUMN_MAP = {
     "BOUWMAN_2020_FILE": ["Protein change", "variant"],
     "CALECA_FILE": ["Protein Change", "variant"],
     "GOU_FILE": ["Amino_acid_change", "HGVS", "hgvs_p"],
+    "GOU_FILE2": ["Amino_acid_change", "HGVS", "hgvs_p"],
     "FAYER_FILE": ["p_variant", "HGVS", "HGVSp.", "hgvs_p", "variant"],
     "BASSI_FILE": ["Amino_acid_change", "variant"],
     "LANGERUD_FILE": ["HGVSc.", "Variant"],
@@ -22,6 +23,8 @@ JOIN_KEY_COLUMN_MAP = {
     "LEE_FILE_2": ["Variant", "hgvs_p"],
     "LEE_FILE_3": ["Variant", "hgvs_p"],
     "STARITA_FILE": ["variant", "hgvs_p"],
+    "STARITA_FILE2": ["hgvs_pro", "hgvs_p", "hgvs_protein", "variant"],
+    "STARITA_FILE3": ["hgvs_pro", "hgvs_p", "hgvs_protein", "variant"],
     "HART_FILE": ["AminoAcid", "variant", "hgvs_p"],
     
     # BRCA2

@@ -23,7 +23,7 @@ OUTPUT_FILE = OUTPUT_DIR / "master_dataframes" / "VHL_master_dataframe.csv"
 MAPPING_FILE = REF_DIR / "Functional Assay Mapping - Sheet1.csv"
 
 # File paths
-CRAVAT_FILE = DATA_DIR / "VHL/VHL_annotated.csv.gz"
+CRAVAT_FILE = DATA_DIR / "VHL/VHL_annotated.csv"
 PILLAR_FILE = DATA_DIR / "VHL/VHL_pillar_data.csv"
 BUCKLEY_FILE = DATA_DIR / "VHL/VHL_pillar_data.csv"
 MAVE_FILE = REF_DIR / "MAVE Curation v3.csv"
@@ -392,6 +392,21 @@ def main():
     not_merged_mask = ~datasets_per_variant["join_key"].isin(master_keys)
     variants_not_merged = datasets_per_variant[not_merged_mask].copy()
 
+    def classify_not_merged_reason(datasets_present):
+        ds = {d for d in str(datasets_present).split(";") if d}
+        has_cravat = "CRAVAT_FILE" in ds or "Cravat" in ds
+        if has_cravat:
+            return "present_in_cravat_but_missing_from_master"
+        if ds == {"PILLAR_FILE"}:
+            return "not_in_cravat_backbone_pillar_only"
+        if len(ds) == 1:
+            return "not_in_cravat_backbone_single_assay"
+        if len(ds) > 1:
+            return "not_in_cravat_backbone_multi_assay"
+        return "not_in_cravat_backbone_unknown_source"
+
+    variants_not_merged["not_merged_reason"] = variants_not_merged["datasets_present"].apply(classify_not_merged_reason)
+
     print("Enriching unmerged variants with source data...")
     unmerged_full = variants_not_merged
     
@@ -436,7 +451,7 @@ def main():
         if col not in unmerged_full.columns:
             unmerged_full[col] = np.nan
             
-    final_cols_ordered = ['datasets_present'] + list(final_df.columns)
+    final_cols_ordered = ['datasets_present', 'not_merged_reason'] + list(final_df.columns)
     variants_not_merged_enriched = unmerged_full[final_cols_ordered].copy()
 
     print(f"Writing {len(variants_not_merged_enriched)} not-merged variants to {NOT_MERGED_FILE}...")

@@ -37,6 +37,7 @@ SAHU_2023_FILE = DATA_DIR / "BRCA2/BRCA2_pillar_data.csv" # Mapped from pillar
 SAHU_2025_FILE = DATA_DIR / "BRCA2/BRCA2_pillar_data.csv" # Mapped from pillar
 CALECA_FILE = DATA_DIR / "BRCA2/table4_Caleca_BRCA1_BRCA2_2019_PMID30696104.csv" # Shared with BRCA1
 GOU_FILE = DATA_DIR / "BRCA1/table1_Guo_BRCA1_2023_PMID37731132.csv" # Shared with BRCA1
+GOU_FILE2 = DATA_DIR / "BRCA1/supplemental_table_S1_Guo_BRCA1_BRCA2_control_variants_2023_PMID37731132.csv"
 MAVE_FILE = REF_DIR / "MAVE Curation v3.csv"
 
 # Target columns
@@ -222,6 +223,21 @@ def main():
     sahu_2025_df = load_generic_dataset(SAHU_2025_FILE, "SAHU_2025_FILE")
     caleca_df = load_generic_dataset(CALECA_FILE, "CALECA_FILE")
     gou_df = load_generic_dataset(GOU_FILE, "GOU_FILE")
+    gou2_df = load_generic_dataset(GOU_FILE2, "GOU_FILE2")
+    if gou2_df is not None and not gou2_df.empty:
+        if 'Gene' in gou2_df.columns:
+            gou2_df = gou2_df[gou2_df['Gene'].astype(str).str.upper() == 'BRCA2']
+        rename_map = {}
+        if 'Relative_HR_activity' in gou2_df.columns:
+            rename_map['Relative_HR_activity'] = 'BRCA2_Gou_2023_Relative_HR_activity'
+        if 'Clinical_significance' in gou2_df.columns:
+            rename_map['Clinical_significance'] = 'BRCA2_Gou_2023_HR_function'
+        if rename_map:
+            gou2_df = gou2_df.rename(columns=rename_map)
+        keep_cols = ['join_key', 'BRCA2_Gou_2023_Relative_HR_activity', 'BRCA2_Gou_2023_HR_function']
+        gou2_df = gou2_df[[c for c in keep_cols if c in gou2_df.columns]]
+        if 'join_key' in gou2_df.columns:
+            gou2_df = gou2_df.dropna(subset=['join_key']).drop_duplicates(subset=['join_key'])
 
     dataset_dfs = {
         "CRAVAT_FILE": cravat_df,
@@ -237,7 +253,8 @@ def main():
         "SAHU_2023_FILE": sahu_2023_df,
         "SAHU_2025_FILE": sahu_2025_df,
         "CALECA_FILE": caleca_df,
-        "GOU_FILE": gou_df
+        "GOU_FILE": gou_df,
+        "GOU_FILE2": gou2_df
     }
 
     master_df = cravat_df.copy()
@@ -267,6 +284,15 @@ def main():
             print(f"  SpliceAI filter nulled {nulled} rows for {name}")
 
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
+
+    # Merge Gou control variants from GOU_FILE2 without overwriting existing non-null values
+    if gou2_df is not None and not gou2_df.empty:
+        master_df = master_df.merge(gou2_df, on='join_key', how='left', suffixes=('', '_gou2_tmp'))
+        for col in ['BRCA2_Gou_2023_Relative_HR_activity', 'BRCA2_Gou_2023_HR_function']:
+            tmp_col = f"{col}_gou2_tmp"
+            if tmp_col in master_df.columns:
+                master_df[col] = master_df[col].fillna(master_df[tmp_col])
+                master_df = master_df.drop(columns=[tmp_col])
     
     master_df['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:1101')
     
@@ -415,6 +441,21 @@ def main():
     not_merged_mask = ~datasets_per_variant["join_key"].isin(master_keys)
     variants_not_merged = datasets_per_variant[not_merged_mask].copy()
 
+    def classify_not_merged_reason(datasets_present):
+        ds = {d for d in str(datasets_present).split(";") if d}
+        has_cravat = "CRAVAT_FILE" in ds or "Cravat" in ds
+        if has_cravat:
+            return "present_in_cravat_but_missing_from_master"
+        if ds == {"PILLAR_FILE"}:
+            return "not_in_cravat_backbone_pillar_only"
+        if len(ds) == 1:
+            return "not_in_cravat_backbone_single_assay"
+        if len(ds) > 1:
+            return "not_in_cravat_backbone_multi_assay"
+        return "not_in_cravat_backbone_unknown_source"
+
+    variants_not_merged["not_merged_reason"] = variants_not_merged["datasets_present"].apply(classify_not_merged_reason)
+
     print("Enriching unmerged variants with source data...")
     unmerged_full = variants_not_merged
     
@@ -459,7 +500,7 @@ def main():
         if col not in unmerged_full.columns:
             unmerged_full[col] = np.nan
             
-    final_cols_ordered = ['datasets_present'] + list(final_df.columns)
+    final_cols_ordered = ['datasets_present', 'not_merged_reason'] + list(final_df.columns)
     variants_not_merged_enriched = unmerged_full[final_cols_ordered].copy()
 
     print(f"Writing {len(variants_not_merged_enriched)} not-merged variants to {NOT_MERGED_FILE}...")

@@ -25,7 +25,8 @@ CRAVAT_FILE = DATA_DIR / "MSH2/MSH2_annotated.csv.gz"
 PILLAR_FILE = DATA_DIR / "MSH2/MSH2_pillar_data.csv.gz"
 JIA_FILE = DATA_DIR / "MSH2/Jia MSH2 2021.xlsx"
 OLLODART_FILE = DATA_DIR / "MSH2/Ollodart2020.xlsx"
-BOUVET_FILE = DATA_DIR / "MSH2/MSH2_Bouvet_new.csv"
+BOUVET_FILE1 = DATA_DIR / "MSH2/MSH2_Bouvet_new.csv"
+BOUVET_FILE2 = DATA_DIR / "MSH2/Copy of Supplemental_Table_1_Bouvet_MSH2_2019_PMID30998989 - Supplemental_Table_1_Bouvet_MSH2_MLH1_2019_PMID30998989.csv"
 MAVE_FILE = REF_DIR / "MAVE Curation v3.csv"
 
 # Target columns
@@ -219,7 +220,7 @@ def load_ollodart(filepath):
         print(f"Error loading Ollodart: {e}")
         return pd.DataFrame(columns=['join_key', 'MSH2_Ollodart_auth_func_score', 'Ollodart_auth_reported_functional_class'])
 
-def load_bouvet(filepath):
+def load_bouvet(filepath, blank_functional_class=False):
     print(f"Loading Bouvet data from {filepath}...")
     try:
         df = pd.read_csv(filepath)
@@ -230,12 +231,20 @@ def load_bouvet(filepath):
             print(f"Warning: duplicates found in Bouvet join_key. Dropping.")
             df = df.drop_duplicates(subset=['join_key'])
         
-        # MT assay result: "77.12% Potentially damaging"
+        # MT assay result: "77.12% Potentially damaging" or column named "MT assay result (%)"
         # Extract score and class
-        extracted = df['MT assay result'].astype(str).str.extract(r'([\d\.]+)%\s*(.*)')
+        score_col = None
+        for candidate in ["MT assay result", "MT assay result (%)"]:
+            if candidate in df.columns:
+                score_col = candidate
+                break
+        if score_col is None:
+            raise KeyError("Bouvet file missing MT assay result column")
+
+        extracted = df[score_col].astype(str).str.extract(r'([\d\.]+)%\s*(.*)')
         
         df['MSH2_Bouvet_auth_func_score'] = pd.to_numeric(extracted[0], errors='coerce')
-        df['Bouvet_auth_reported_functional_class'] = extracted[1]
+        df['Bouvet_auth_reported_functional_class'] = np.nan if blank_functional_class else extracted[1]
         
         cols = ['join_key', 'MSH2_Bouvet_auth_func_score', 'Bouvet_auth_reported_functional_class']
         cols = [c for c in cols if c in df.columns]
@@ -344,11 +353,16 @@ def main():
     # 3. Load Functional Datasets
     jia_df = load_jia(JIA_FILE)
     ollodart_df = load_ollodart(OLLODART_FILE)
-    bouvet_df = load_bouvet(BOUVET_FILE)
+    bouvet1_df = load_bouvet(BOUVET_FILE1)
+    bouvet2_df = load_bouvet(BOUVET_FILE2, blank_functional_class=True)
+    bouvet_df = pd.concat([bouvet1_df, bouvet2_df], ignore_index=True)
+    if 'join_key' in bouvet_df.columns and bouvet_df.duplicated(subset=['join_key']).any():
+        print("Warning: duplicates found across Bouvet files. Dropping.")
+        bouvet_df = bouvet_df.drop_duplicates(subset=['join_key'])
     
     print(f"Jia variants: {len(jia_df)}")
     print(f"Ollodart variants: {len(ollodart_df)}")
-    print(f"Bouvet variants: {len(bouvet_df)}")
+    print(f"Bouvet variants: {len(bouvet_df)} (combined)")
 
     # Store individual source dfs for later check
     source_dfs = {
@@ -387,7 +401,7 @@ def main():
         "PILLAR_FILE": pillar_df,
         "JIA_FILE": jia_df,
         "OLLODART_FILE": ollodart_df,
-        "BOUVET_FILE": bouvet_df,
+        "BOUVET_FILES": bouvet_df,
     }
     for name, df in dataset_dfs.items():
         if name in ALLOWLIST_DATASETS:
@@ -548,6 +562,21 @@ def main():
     not_merged_mask = ~datasets_per_variant["join_key"].isin(master_keys)
     variants_not_merged = datasets_per_variant[not_merged_mask].copy()
 
+    def classify_not_merged_reason(datasets_present):
+        ds = {d for d in str(datasets_present).split(";") if d}
+        has_cravat = "CRAVAT_FILE" in ds or "Cravat" in ds
+        if has_cravat:
+            return "present_in_cravat_but_missing_from_master"
+        if ds == {"PILLAR_FILE"}:
+            return "not_in_cravat_backbone_pillar_only"
+        if len(ds) == 1:
+            return "not_in_cravat_backbone_single_assay"
+        if len(ds) > 1:
+            return "not_in_cravat_backbone_multi_assay"
+        return "not_in_cravat_backbone_unknown_source"
+
+    variants_not_merged["not_merged_reason"] = variants_not_merged["datasets_present"].apply(classify_not_merged_reason)
+
     # Enrich unmerged variants with data from source dataframes
     print("Enriching unmerged variants with source data...")
     
@@ -609,7 +638,7 @@ def main():
             unmerged_full[col] = np.nan
             
     # Select final columns: datasets_present + master columns
-    final_cols_ordered = ['datasets_present'] + list(final_df.columns)
+    final_cols_ordered = ['datasets_present', 'not_merged_reason'] + list(final_df.columns)
     
     # Filter and reorder
     variants_not_merged_enriched = unmerged_full[final_cols_ordered].copy()

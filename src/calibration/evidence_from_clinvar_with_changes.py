@@ -163,6 +163,8 @@ MAVEDB_TO_CLASS_COLUMN = {
     "Guidugli et al 2018 BRCA2": "BRCA2_Guidugli_2018_HDR_annotation",
     "Gou et al 2023 BRCA2": "BRCA2_Gou_2023_HR_function",
     "Caleca et al 2019 BRCA2 DSS1": "BRCA2_Caleca_2019_BRCA2_DSS1_Binding",
+    "Mesman et al 2021 BRCA2 Complementation": "BRCA2_Mesman_2021_Complementation",
+    "Mesman et al 2021 BRCA2 HDR capacity": "BRCA2_Mesman_2021_HDR_capacity",
     # MSH2
     "Jia et al MSH2": "Jia_auth_reported_functional_class",
     "Ollodart et al MSH2": "Ollodart_auth_reported_functional_class",
@@ -406,6 +408,46 @@ def normalize_assay_class(value: object) -> Optional[str]:
         return "indeterminate"
     
     return None
+
+
+def transform_assay_category(assay_name: str, class_col: str, value: object) -> Optional[str]:
+    """
+    Optional assay-specific category transforms before per-category LR calculation.
+    Returns a category label string or None to drop the value.
+    """
+    # Mesman BRCA2 Complementation:
+    # Yes -> Nonpathogenic class, No -> Pathogenic class, Poor -> Intermediate class
+    if class_col == "BRCA2_Mesman_2021_Complementation":
+        if pd.isna(value):
+            return None
+        val = str(value).strip().lower()
+        if val == "yes":
+            return "Nonpathogenic class"
+        if val == "no":
+            return "Pathogenic class"
+        if val == "poor":
+            return "Intermediate class"
+        return None
+
+    # Mesman BRCA2 HDR capacity:
+    # NA or <30 -> Pathogenic class, 50-150 -> Nonpathogenic class
+    # Other values are left unmapped.
+    if class_col == "BRCA2_Mesman_2021_HDR_capacity":
+        if pd.isna(value):
+            return "Pathogenic class"
+        raw = str(value).strip().lower()
+        if raw in {"na", "nan", "none", ""}:
+            return "Pathogenic class"
+        num = pd.to_numeric(raw, errors="coerce")
+        if pd.isna(num):
+            return None
+        if num < 30:
+            return "Pathogenic class"
+        if 50 <= num <= 150:
+            return "Nonpathogenic class"
+        return None
+
+    return str(value).strip() if not pd.isna(value) else None
 
 
 def evidence_from_lr_path(lr_plus: float) -> str:
@@ -752,8 +794,16 @@ def calibrate_assay_classification_based(
     if total_P == 0 or total_B == 0:
         return None
     
-    # Get unique categories (use original values, don't normalize)
-    categories = subset[class_col].dropna().unique()
+    # Apply assay-specific category transforms where required
+    subset["__calib_category"] = subset[class_col].apply(
+        lambda v: transform_assay_category(thresholds.assay_name, class_col, v)
+    )
+    subset = subset[subset["__calib_category"].notna()].copy()
+    if len(subset) < 5:
+        return None
+
+    # Get unique categories
+    categories = subset["__calib_category"].dropna().unique()
     
     category_lrs: Dict[str, CategoryLR] = {}
     
@@ -763,7 +813,7 @@ def calibrate_assay_classification_based(
             continue
         
         # Count this category among P and B
-        cat_mask = subset[class_col].astype(str).str.strip() == cat_str
+        cat_mask = subset["__calib_category"].astype(str).str.strip() == cat_str
         n_cat_P = (cat_mask & (subset[clinvar_truth_col] == "pathogenic")).sum()
         n_cat_B = (cat_mask & (subset[clinvar_truth_col] == "benign")).sum()
         n_total = cat_mask.sum()

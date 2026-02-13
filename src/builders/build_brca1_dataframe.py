@@ -32,14 +32,17 @@ FERNANDES_FILE = DATA_DIR / "BRCA1/supp_RA118.005274_139996_2_supp_282032_pm8gkd
 BOUWMAN_2013_FILE = DATA_DIR / "BRCA1/supplementary_table_s3_mean_BRCA1_Bouwman_2013_PMID23867111.csv"
 BOUWMAN_2020_FILE = DATA_DIR / "BRCA1/Supplementary Table S2_BRCA1_Bouwman_2020_PMID32546644.xlsx - Sheet1.csv"
 CALECA_FILE = DATA_DIR / "BRCA1/table3_Caleca_BRCA1_BRCA2_2019_PMID30696104.csv"
-GOU_FILE = DATA_DIR / "BRCA1/table1_Guo_BRCA1_2023_PMID37731132.csv"
+GOU_FILE1 = DATA_DIR / "BRCA1/table1_Guo_BRCA1_2023_PMID37731132.csv"
+GOU_FILE2 = DATA_DIR / "BRCA1/supplemental_table_S1_Guo_BRCA1_BRCA2_control_variants_2023_PMID37731132.csv"
 # FAYER_FILE = DATA_DIR / "BRCA1/Fayer et al data.xlsx - Table_S7.csv"
 BASSI_FILE = DATA_DIR / "BRCA1/table1_BRCA1_Bassi_2023_PMID37085799.csv"
 LANGERUD_FILE = DATA_DIR / "BRCA1/table2_BRCA1_Langerud_2018_PMID30458859.csv"
 LEE_FILE_1 = DATA_DIR / "BRCA1/Extracted_Supplement_BRCA1_Lee_2010_PMID20516115.csv"
 LEE_FILE_2 = DATA_DIR / "BRCA1/Extracted_Table2_BRCA1_Lee_2010_PMID20516115.csv.csv"
 LEE_FILE_3 = DATA_DIR / "BRCA1/Extracted_Fig3_BRCA1_Lee_2010_PMID20516115.csv"
-STARITA_FILE = DATA_DIR / "BRCA1/TableS7 2_Starita_BRCA1_2018_PMID30219179.tsv"
+STARITA_FILE1 = DATA_DIR / "BRCA1/TableS7 2_Starita_BRCA1_2018_PMID30219179.tsv"
+STARITA_FILE2 = DATA_DIR / "BRCA1/urn_mavedb_00000081-a-1_scores.csv"
+STARITA_FILE3 = DATA_DIR / "BRCA1/urn_mavedb_00000081-a-2_scores.csv"
 HART_FILE = DATA_DIR / "BRCA1/Table S2.xls - Table S2.csv"
 MAVE_FILE = REF_DIR / "MAVE Curation v3.csv"
 
@@ -60,7 +63,7 @@ TARGET_COLUMNS = [
     "BRCA1_Bassi_2023_HDR_assay_His_BRCA1_HeLa_DR_GFP_percent", "BRCA1_Bassi_2023_TA_assay_DBD_BRCT_HEK293_percent", "BRCA1_Bassi_2023_Results_in_functional_assays_this_study",
     "BRCA1_Langerud_HEK293T_TA_Activity_Percent","BRCA1_Langerud_MDA_MB_231_TA_Activity_Percent", "BRCA1_Langerud_2018_Risk_Category",
     "BRCA1_Lee_2010_Structural_Stability_Table_SD", "BRCA1_Lee_2010_Binding_Activity_Table_SD", "BRCA1_Lee_2010_Binding_Specificity_Table","BRCA1_Lee_2010_Transcription_Activity_BarGraph", "BRCA1_Lee_2010_Protease_Sensitivity", "BRCA1_Lee_2010_Binding_Activity", "BRCA1_Lee_2010_Binding_Specificity", "BRCA1_Lee_2010_Transcription_Activity", "BRCA1_Lee_2010_Functional_Effect", 
-    "BRCA1_Starita_HDR_predit",
+    "BRCA1_Starita_HDR_predit", "BRCA1_Starita_2018HDR_depletion_score", "BRCA1_Starita_2018HDR_fluorescence_score",
     "BRCA1_Hart_2018_Functional_score", "BRCA1_Hart_2018_Functional_classification",
     "PP_auth_reported_rep_score",
     "gnomad_MAF", 
@@ -244,7 +247,22 @@ def main():
     bouwman_2013_df = load_generic_dataset(BOUWMAN_2013_FILE, "BOUWMAN_2013_FILE")
     bouwman_2020_df = load_generic_dataset(BOUWMAN_2020_FILE, "BOUWMAN_2020_FILE")
     caleca_df = load_generic_dataset(CALECA_FILE, "CALECA_FILE")
-    gou_df = load_generic_dataset(GOU_FILE, "GOU_FILE")
+    gou_df = load_generic_dataset(GOU_FILE1, "GOU_FILE")
+    gou_df2 = load_generic_dataset(GOU_FILE2, "GOU_FILE2")
+    if gou_df2 is not None and not gou_df2.empty:
+        if 'Gene' in gou_df2.columns:
+            gou_df2 = gou_df2[gou_df2['Gene'].astype(str).str.upper() == 'BRCA1']
+        rename_map = {}
+        if 'Relative_HR_activity' in gou_df2.columns:
+            rename_map['Relative_HR_activity'] = 'BRCA1_Gou_2023_Relative_HR_activity'
+        if 'Clinical_significance' in gou_df2.columns:
+            rename_map['Clinical_significance'] = 'BRCA1_Gou_2023_HR_function'
+        if rename_map:
+            gou_df2 = gou_df2.rename(columns=rename_map)
+        keep_cols = ['join_key', 'BRCA1_Gou_2023_Relative_HR_activity', 'BRCA1_Gou_2023_HR_function']
+        gou_df2 = gou_df2[[c for c in keep_cols if c in gou_df2.columns]]
+        if 'join_key' in gou_df2.columns:
+            gou_df2 = gou_df2.dropna(subset=['join_key']).drop_duplicates(subset=['join_key'])
     # fayer_df = load_generic_dataset(FAYER_FILE, "FAYER_FILE")
     bassi_df = load_generic_dataset(BASSI_FILE, "BASSI_FILE")
     langerud_df = load_generic_dataset(LANGERUD_FILE, "LANGERUD_FILE")
@@ -252,7 +270,9 @@ def main():
     lee_2010_df_1 = load_generic_dataset(LEE_FILE_1, "LEE_FILE_1")
     lee_2010_df_2 = load_generic_dataset(LEE_FILE_2, "LEE_FILE_2")
     lee_2010_df_3 = load_generic_dataset(LEE_FILE_3, "LEE_FILE_3")
-    starita_df = load_generic_dataset(STARITA_FILE, "STARITA_FILE", file_type='tsv')
+    starita_df = load_generic_dataset(STARITA_FILE1, "STARITA_FILE", file_type='tsv')
+    starita2_df = load_generic_dataset(STARITA_FILE2, "STARITA_FILE2")
+    starita3_df = load_generic_dataset(STARITA_FILE3, "STARITA_FILE3")
 
     # Filter Starita to only Pass/Pass on E3 and Y2H before any renaming or keying
     if starita_df is not None and not starita_df.empty:
@@ -285,6 +305,7 @@ def main():
         "BOUWMAN_2020_FILE": bouwman_2020_df,
         "CALECA_FILE": caleca_df,
         "GOU_FILE": gou_df,
+        "GOU_FILE2": gou_df2,
         # "FAYER_FILE": fayer_df,
         "BASSI_FILE": bassi_df,
         "LANGERUD_FILE": langerud_df,
@@ -292,6 +313,8 @@ def main():
         "LEE_FILE_2": lee_2010_df_2,
         "LEE_FILE_3": lee_2010_df_3,
         "STARITA_FILE": starita_df,
+        "STARITA_FILE2": starita2_df,
+        "STARITA_FILE3": starita3_df,
         "HART_FILE": hart_2018_df
     }
 
@@ -330,6 +353,37 @@ def main():
             print(f"  SpliceAI filter nulled {nulled} rows for {name}")
 
     master_df = apply_functional_mappings(master_df, gene_mapping, dataset_dfs)
+
+    # Merge Gou file 2 (control variants) without overwriting existing values
+    if gou_df2 is not None and not gou_df2.empty:
+        master_df = master_df.merge(gou_df2, on='join_key', how='left', suffixes=('', '_gou2_tmp'))
+        for col in ['BRCA1_Gou_2023_Relative_HR_activity', 'BRCA1_Gou_2023_HR_function']:
+            tmp = f"{col}_gou2_tmp"
+            if tmp in master_df.columns:
+                master_df[col] = master_df[col].fillna(master_df[tmp])
+                master_df = master_df.drop(columns=[tmp])
+
+    # 5b. Merge Starita MaveDB scores (new files)
+    def _merge_starita(df, target_col):
+        if df is None or df.empty:
+            return
+        if 'join_key' not in df.columns:
+            return
+        df = df.copy()
+        df[target_col] = pd.to_numeric(df.get('score'), errors='coerce')
+        df = df[['join_key', target_col]].dropna(subset=['join_key'])
+        # Drop duplicates keeping first
+        df = df.drop_duplicates(subset=['join_key'])
+        non_null = df[target_col].notna().sum()
+        print(f"  Merged {non_null} rows into {target_col} from Starita file")
+        return df
+        return df
+
+    starita2_merge = _merge_starita(starita2_df, 'BRCA1_Starita_2018HDR_fluorescence_score')
+    starita3_merge = _merge_starita(starita3_df, 'BRCA1_Starita_2018HDR_depletion_score')
+    for merged_df in [starita2_merge, starita3_merge]:
+        if merged_df is not None:
+            master_df = master_df.merge(merged_df, on='join_key', how='left')
     
     # 6. Fill Metadata Columns
     master_df['HGNC ID'] = mave_meta.get('HGNC ID', 'HGNC:1100')
@@ -476,6 +530,21 @@ def main():
     not_merged_mask = ~datasets_per_variant["join_key"].isin(master_keys)
     variants_not_merged = datasets_per_variant[not_merged_mask].copy()
 
+    def classify_not_merged_reason(datasets_present):
+        ds = {d for d in str(datasets_present).split(";") if d}
+        has_cravat = "CRAVAT_FILE" in ds or "Cravat" in ds
+        if has_cravat:
+            return "present_in_cravat_but_missing_from_master"
+        if ds == {"PILLAR_FILE"}:
+            return "not_in_cravat_backbone_pillar_only"
+        if len(ds) == 1:
+            return "not_in_cravat_backbone_single_assay"
+        if len(ds) > 1:
+            return "not_in_cravat_backbone_multi_assay"
+        return "not_in_cravat_backbone_unknown_source"
+
+    variants_not_merged["not_merged_reason"] = variants_not_merged["datasets_present"].apply(classify_not_merged_reason)
+
     print("Enriching unmerged variants with source data...")
     unmerged_full = variants_not_merged
     
@@ -524,7 +593,7 @@ def main():
         if col not in unmerged_full.columns:
             unmerged_full[col] = np.nan
             
-    final_cols_ordered = ['datasets_present'] + list(final_df.columns)
+    final_cols_ordered = ['datasets_present', 'not_merged_reason'] + list(final_df.columns)
     # Filter columns to match master schema + datasets_present
     # Note: This drops extra columns from individual datasets not in master schema
     variants_not_merged_enriched = unmerged_full[final_cols_ordered].copy()
